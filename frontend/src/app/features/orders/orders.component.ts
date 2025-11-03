@@ -6,7 +6,7 @@ import { ProductService } from '../../core/services/product.service';
 import { TableService } from '../../core/services/table.service';
 import { MenuService } from '../../core/services/menu.service';
 import { PaymentMethodService } from '../../core/services/payment-method.service';
-import { Order, OrderStatus, PaymentMethod, OrderCreate, OrderItemCreate, OrderPayment, PaymentStatus, AddPaymentsToOrder } from '../../core/models/order.model';
+import { Order, OrderStatus, PaymentMethod, OrderCreate, OrderItemCreate, OrderPayment, PaymentStatus, AddPaymentsToOrder, UpdateOrderItems } from '../../core/models/order.model';
 import { PaymentMethod as PaymentMethodModel, PAYMENT_METHOD_LABELS } from '../../core/models/payment-method.model';
 import { Product } from '../../core/models/product.model';
 import { Table, TableStatus } from '../../core/models/table.model';
@@ -42,9 +42,12 @@ export class OrdersComponent implements OnInit {
   showModal = false;
   showDetailModal = false;
   showPaymentModal = false;
+  showEditModal = false;
   selectedOrder: Order | null = null;
   orderToPay: Order | null = null;
+  orderToEdit: Order | null = null;
   orderForm!: FormGroup;
+  editForm!: FormGroup;
   paymentForm!: FormGroup;
   loading = true;
   
@@ -59,9 +62,8 @@ export class OrdersComponent implements OnInit {
   
   statusLabels: Record<OrderStatus, string> = {
     [OrderStatus.PENDING]: 'Pendiente',
-    [OrderStatus.IN_PROGRESS]: 'En Progreso',
+    [OrderStatus.PREPARING]: 'Preparando',
     [OrderStatus.COMPLETED]: 'Completada',
-    [OrderStatus.PAID]: 'Pagada',
     [OrderStatus.CANCELLED]: 'Cancelada'
   };
   
@@ -95,6 +97,15 @@ export class OrdersComponent implements OnInit {
       customer_email: ['', Validators.email],
       customer_phone: ['']
     });
+    
+    this.editForm = this.fb.group({
+      status: ['', Validators.required],
+      items: this.fb.array([])
+    });
+  }
+  
+  get editItemsArray(): FormArray {
+    return this.editForm.get('items') as FormArray;
   }
   
   get itemsArray(): FormArray {
@@ -105,7 +116,8 @@ export class OrdersComponent implements OnInit {
     const item = this.fb.group({
       product_id: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(0.01)]],
-      notes: ['']
+      notes: [''],
+      source_type: [this.showMenuItems ? 'menu' : 'inventory'] // Recordar el tipo
     });
     this.itemsArray.push(item);
   }
@@ -132,7 +144,8 @@ export class OrdersComponent implements OnInit {
     
     this.productService.getProducts().subscribe({
       next: (products) => {
-        this.products = products;
+        // Solo mostrar productos marcados como "mostrar en catálogo"
+        this.products = products.filter(p => p.show_in_catalog);
       }
     });
     
@@ -257,11 +270,10 @@ export class OrdersComponent implements OnInit {
   
   getStatusClass(status: OrderStatus): string {
     const classes: Record<OrderStatus, string> = {
-      [OrderStatus.PENDING]: 'badge-warning',
-      [OrderStatus.IN_PROGRESS]: 'badge-info',
-      [OrderStatus.COMPLETED]: 'badge-success',
-      [OrderStatus.PAID]: 'badge-success',
-      [OrderStatus.CANCELLED]: 'badge-danger'
+      [OrderStatus.PENDING]: 'badge-warning',      // Amarillo - esperando
+      [OrderStatus.PREPARING]: 'badge-info',       // Azul - en cocina
+      [OrderStatus.COMPLETED]: 'badge-success',    // Verde - lista
+      [OrderStatus.CANCELLED]: 'badge-danger'      // Rojo - cancelada
     };
     return classes[status];
   }
@@ -320,27 +332,40 @@ export class OrdersComponent implements OnInit {
     return this.orderPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
   }
   
-  calculateEstimatedTotal(): number {
+  get estimatedTotal(): number {
     let subtotal = 0;
     
-    for (const item of this.orderForm.value.items) {
-      if (this.showMenuItems) {
-        // Si usa menú
-        const menuItem = this.menuItems.find(m => m.id === item.product_id);
+    if (!this.orderForm) return 0;
+    
+    const items = this.orderForm.value.items || [];
+    
+    for (const item of items) {
+      if (!item.product_id || !item.quantity) continue;
+      
+      // Verificar si el item es del menú o inventario según su source_type
+      const isMenuType = item.source_type === 'menu';
+      
+      if (isMenuType) {
+        // Buscar en el menú
+        const menuItem = this.menuItems.find(m => m.id === Number(item.product_id));
         if (menuItem) {
-          subtotal += menuItem.price * item.quantity;
+          subtotal += menuItem.price * Number(item.quantity);
         }
       } else {
-        // Si usa inventario
-        const product = this.products.find(p => p.id === item.product_id);
+        // Buscar en el inventario
+        const product = this.products.find(p => p.id === Number(item.product_id));
         if (product) {
-          subtotal += product.sale_price * item.quantity;
+          subtotal += product.sale_price * Number(item.quantity);
         }
       }
     }
     
     const tax = subtotal * 0.16; // 16% IVA
     return subtotal + tax;
+  }
+  
+  calculateEstimatedTotal(): number {
+    return this.estimatedTotal;
   }
   
   getRemainingAmount(): number {
@@ -488,6 +513,127 @@ export class OrdersComponent implements OnInit {
   
   canPayOrder(order: Order): boolean {
     return order.payment_status !== 'paid';
+  }
+  
+  // Modal de Edición
+  openEditModal(order: Order): void {
+    this.orderToEdit = order;
+    this.editItemsArray.clear();
+    
+    // Cargar status actual
+    this.editForm.patchValue({
+      status: order.status
+    });
+    
+    // Cargar items existentes
+    order.items.forEach(item => {
+      // Determinar si el item es del menú o inventario
+      const isMenuItem = this.menuItems.some(m => m.id === item.product_id);
+      
+      const itemForm = this.fb.group({
+        product_id: [item.product_id, Validators.required],
+        quantity: [item.quantity, [Validators.required, Validators.min(0.01)]],
+        notes: [item.notes || ''],
+        source_type: [isMenuItem ? 'menu' : 'inventory']
+      });
+      this.editItemsArray.push(itemForm);
+    });
+    
+    this.showEditModal = true;
+  }
+  
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.orderToEdit = null;
+  }
+  
+  addEditItem(): void {
+    const item = this.fb.group({
+      product_id: ['', Validators.required],
+      quantity: [1, [Validators.required, Validators.min(0.01)]],
+      notes: [''],
+      source_type: [this.showMenuItems ? 'menu' : 'inventory'] // Recordar el tipo
+    });
+    this.editItemsArray.push(item);
+  }
+  
+  removeEditItem(index: number): void {
+    this.editItemsArray.removeAt(index);
+  }
+
+  // Método para verificar si un item es de menú
+  isMenuItemSource(itemForm: any): boolean {
+    return itemForm.get('source_type')?.value === 'menu';
+  }
+  
+  saveEditedOrder(): void {
+    if (!this.orderToEdit || this.editForm.invalid || this.editItemsArray.length === 0) return;
+    
+    const itemsData: UpdateOrderItems = {
+      items: this.editForm.value.items
+    };
+    
+    const newStatus = this.editForm.value.status;
+    
+    // Actualizar items
+    this.orderService.updateOrderItems(this.orderToEdit.id, itemsData).subscribe({
+      next: () => {
+        // Si el status cambió, actualizarlo también
+        if (newStatus !== this.orderToEdit!.status) {
+          this.orderService.updateOrder(this.orderToEdit!.id, { status: newStatus }).subscribe({
+            next: () => {
+              this.loadData();
+              this.closeEditModal();
+              alert('✅ Orden actualizada exitosamente');
+            }
+          });
+        } else {
+          this.loadData();
+          this.closeEditModal();
+          alert('✅ Orden actualizada exitosamente');
+        }
+      },
+      error: (err) => {
+        alert('Error al actualizar la orden: ' + (err.error?.detail || 'Error desconocido'));
+      }
+    });
+  }
+  
+  canEditOrder(order: Order): boolean {
+    // Solo se pueden editar órdenes pendientes o en preparación
+    return order.status === OrderStatus.PENDING || order.status === OrderStatus.PREPARING;
+  }
+  
+  getEditEstimatedTotal(): number {
+    let subtotal = 0;
+    
+    if (!this.editForm) return 0;
+    
+    const items = this.editForm.value.items || [];
+    
+    for (const item of items) {
+      if (!item.product_id || !item.quantity) continue;
+      
+      // Verificar si el item es del menú o inventario según su source_type
+      const isMenuType = item.source_type === 'menu';
+      
+      if (isMenuType) {
+        // Buscar en el menú
+        const menuItem = this.menuItems.find(m => m.id === Number(item.product_id));
+        if (menuItem) {
+          subtotal += menuItem.price * Number(item.quantity);
+        }
+      } else {
+        // Buscar en el inventario
+        const product = this.products.find(p => p.id === Number(item.product_id));
+        if (product) {
+          subtotal += product.sale_price * Number(item.quantity);
+        }
+      }
+    }
+    
+    const tax = subtotal * 0.16;
+    return subtotal + tax;
   }
 }
 

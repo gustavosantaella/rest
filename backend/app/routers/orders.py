@@ -9,7 +9,7 @@ from ..models.payment_method import PaymentMethod
 from ..models.product import Product
 from ..models.table import Table, TableStatus
 from ..models.user import User
-from ..schemas.order import OrderCreate, OrderUpdate, OrderResponse, AddPaymentsToOrder
+from ..schemas.order import OrderCreate, OrderUpdate, OrderResponse, AddPaymentsToOrder, UpdateOrderItems
 from ..utils.dependencies import get_current_user, get_current_active_chef
 
 router = APIRouter(prefix="/orders", tags=["orders"])
@@ -196,8 +196,8 @@ def update_order(
         order.discount = update_data["discount"]
         order.total = order.subtotal + order.tax - order.discount
     
-    # Si se marca como pagada
-    if update_data.get("status") == OrderStatus.PAID:
+    # Si se marca como completada y está pagada, liberar la mesa
+    if update_data.get("status") == OrderStatus.COMPLETED and order.payment_status == "paid":
         order.paid_at = datetime.utcnow()
         # Liberar la mesa si tiene una asignada
         if order.table_id:
@@ -211,6 +211,96 @@ def update_order(
     
     db.commit()
     db.refresh(order)
+    return order
+
+
+@router.put("/{order_id}/items", response_model=OrderResponse)
+def update_order_items(
+    order_id: int,
+    items_data: UpdateOrderItems,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Actualizar items de una orden existente (agregar/quitar productos)"""
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Orden no encontrada"
+        )
+    
+    # No permitir editar órdenes completadas o canceladas
+    if order.status == OrderStatus.COMPLETED or order.status == OrderStatus.CANCELLED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No se pueden editar órdenes completadas o canceladas"
+        )
+    
+    # Restaurar stock de los items actuales
+    for old_item in order.items:
+        product = db.query(Product).filter(Product.id == old_item.product_id).first()
+        if product:
+            product.stock += old_item.quantity
+    
+    # Eliminar items actuales
+    for item in order.items:
+        db.delete(item)
+    
+    # Crear nuevos items
+    subtotal = 0
+    for item_data in items_data.items:
+        product = db.query(Product).filter(Product.id == item_data.product_id).first()
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Producto con ID {item_data.product_id} no encontrado"
+            )
+        
+        # Verificar stock
+        if product.stock < item_data.quantity:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Stock insuficiente para {product.name}"
+            )
+        
+        item_subtotal = product.sale_price * item_data.quantity
+        subtotal += item_subtotal
+        
+        order_item = OrderItem(
+            product_id=item_data.product_id,
+            quantity=item_data.quantity,
+            unit_price=product.sale_price,
+            subtotal=item_subtotal,
+            notes=item_data.notes
+        )
+        order.items.append(order_item)
+        
+        # Reducir stock
+        product.stock -= item_data.quantity
+    
+    # Recalcular totales
+    order.subtotal = subtotal
+    order.tax = subtotal * 0.16
+    order.total = subtotal + order.tax - order.discount
+    
+    # Recalcular payment_status basado en pagos existentes
+    total_pagado = sum(p.amount for p in order.payments)
+    if total_pagado >= order.total:
+        order.payment_status = "paid"
+    elif total_pagado > 0:
+        order.payment_status = "partial"
+    else:
+        order.payment_status = "pending"
+    
+    db.commit()
+    db.refresh(order)
+    
+    # Agregar nombres de métodos de pago
+    for payment in order.payments:
+        payment_method = db.query(PaymentMethod).filter(PaymentMethod.id == payment.payment_method_id).first()
+        if payment_method:
+            payment.payment_method_name = payment_method.name
+    
     return order
 
 
@@ -290,9 +380,7 @@ def add_payments_to_order(
     if abs(total_after_payments - order.total) <= 0.01:
         order.payment_status = "paid"
         order.paid_at = datetime.utcnow()
-        # Si estaba pendiente, marcar como completada
-        if order.status == OrderStatus.PENDING:
-            order.status = OrderStatus.COMPLETED
+        # No cambiar status automáticamente - eso lo maneja el mesero/chef
     elif total_after_payments > 0:
         order.payment_status = "partial"
     

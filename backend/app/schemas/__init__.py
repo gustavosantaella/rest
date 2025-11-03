@@ -13,6 +13,7 @@ from .order import (
     OrderResponse,
     OrderItemCreate,
     AddPaymentsToOrder,
+    UpdateOrderItems,
 )
 from .menu import (
     MenuItemCreate,
@@ -71,4 +72,6 @@ __all__ = [
     "PaymentMethodUpdate",
     "PaymentMethodResponse",
     "PaymentMethodType",
+    "AddPaymentsToOrder",
+    "UpdateOrderItems",
 ]

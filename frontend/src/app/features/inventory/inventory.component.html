@@ -62,6 +62,7 @@
             <th>P. Venta</th>
             <th>Stock</th>
             <th>Stock Mín.</th>
+            <th>Catálogo</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -85,6 +86,20 @@
               </span>
             </td>
             <td>{{ product.min_stock }}</td>
+            <td>
+              <span *ngIf="product.show_in_catalog" class="flex items-center text-green-600 text-sm font-medium" title="Visible en órdenes">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Sí
+              </span>
+              <span *ngIf="!product.show_in_catalog" class="flex items-center text-gray-400 text-sm" title="Oculto en órdenes">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                No
+              </span>
+            </td>
             <td>
               <div class="flex space-x-2">
                 <button
@@ -231,6 +246,24 @@
               tooltipPosition="top"
             />
           </div>
+        </div>
+        
+        <!-- Mostrar en Catálogo -->
+        <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <label class="flex items-center space-x-3 cursor-pointer">
+            <input
+              type="checkbox"
+              formControlName="show_in_catalog"
+              class="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            <div class="flex-1">
+              <span class="text-sm font-bold text-gray-800">Mostrar en catálogo de órdenes</span>
+              <p class="text-xs text-gray-600 mt-1">
+                Si está marcado, este producto aparecerá en el selector al crear órdenes. 
+                Si no está marcado, solo estará visible en el inventario (útil para ingredientes o productos no vendibles directamente).
+              </p>
+            </div>
+          </label>
         </div>
         
         <div class="mt-6 flex justify-end space-x-3">

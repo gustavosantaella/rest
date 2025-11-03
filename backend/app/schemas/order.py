@@ -66,3 +66,6 @@ class OrderResponse(OrderBase):
 class AddPaymentsToOrder(BaseModel):
     payments: List[OrderPaymentCreate]
 
+
+class UpdateOrderItems(BaseModel):
+    items: List[OrderItemCreate]

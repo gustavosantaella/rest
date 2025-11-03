@@ -30,6 +30,7 @@ class ProductBase(BaseModel):
     sale_price: float
     stock: float = 0
     min_stock: float = 0
+    show_in_catalog: bool = False  # Por defecto no se muestra en órdenes
 
 
 class ProductCreate(ProductBase):
@@ -45,6 +46,7 @@ class ProductUpdate(BaseModel):
     sale_price: Optional[float] = None
     stock: Optional[float] = None
     min_stock: Optional[float] = None
+    show_in_catalog: Optional[bool] = None
 
 
 class ProductResponse(ProductBase):

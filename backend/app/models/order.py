@@ -6,11 +6,10 @@ from ..database import Base
 
 
 class OrderStatus(str, enum.Enum):
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
-    PAID = "paid"
+    PENDING = "pending"         # Pendiente - recién creada
+    PREPARING = "preparing"     # Preparando - en cocina
+    COMPLETED = "completed"     # Completada - lista para servir/entregar
+    CANCELLED = "cancelled"     # Cancelada
 
 
 class PaymentMethod(str, enum.Enum):

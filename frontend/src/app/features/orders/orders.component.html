@@ -56,6 +56,16 @@
             <td>
               <div class="flex space-x-2">
                 <button
+                  *ngIf="canEditOrder(order)"
+                  (click)="openEditModal(order)"
+                  class="text-purple-600 hover:text-purple-800"
+                  title="Editar orden"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                </button>
+                <button
                   *ngIf="canPayOrder(order)"
                   (click)="openPaymentModal(order)"
                   class="text-green-600 hover:text-green-800"
@@ -208,39 +218,35 @@
             <div formArrayName="items" class="space-y-3">
               <div *ngFor="let item of itemsArray.controls; let i = index" [formGroupName]="i" class="flex items-start space-x-2 p-3 bg-gray-50 rounded-lg">
                 <div class="flex-1 grid grid-cols-2 gap-2">
-                  <!-- Selector de Platillos del Menú -->
+                  <!-- Selector Unificado -->
                   <select 
-                    *ngIf="showMenuItems"
                     formControlName="product_id" 
                     class="input-field text-sm"
-                    appTooltip="Selecciona el platillo del menú que el cliente desea ordenar."
+                    [appTooltip]="isMenuItemSource(item) ? 'Selecciona el platillo del menú que el cliente desea ordenar.' : 'Selecciona el producto del inventario que el cliente desea ordenar.'"
                     tooltipPosition="top"
                   >
-                    <option value="">Selecciona platillo</option>
-                    <optgroup label="🌟 Destacados" *ngIf="hasFeaturedItems">
-                      <option *ngFor="let menuItem of featuredMenuItems" [value]="menuItem.id">
-                        {{ menuItem.name }} - ${{ menuItem.price.toFixed(2) }}
+                    <!-- Opciones de Menú -->
+                    <ng-container *ngIf="isMenuItemSource(item)">
+                      <option value="">Selecciona platillo</option>
+                      <optgroup label="🌟 Destacados" *ngIf="hasFeaturedItems">
+                        <option *ngFor="let menuItem of featuredMenuItems" [value]="menuItem.id">
+                          {{ menuItem.name }} - ${{ menuItem.price.toFixed(2) }}
+                        </option>
+                      </optgroup>
+                      <optgroup label="📖 Menú Completo">
+                        <option *ngFor="let menuItem of menuItems" [value]="menuItem.id">
+                          {{ menuItem.name }} - ${{ menuItem.price.toFixed(2) }}
+                        </option>
+                      </optgroup>
+                    </ng-container>
+                    
+                    <!-- Opciones de Inventario -->
+                    <ng-container *ngIf="!isMenuItemSource(item)">
+                      <option value="">Selecciona producto</option>
+                      <option *ngFor="let product of products" [value]="product.id">
+                        {{ product.name }} - ${{ product.sale_price.toFixed(2) }}
                       </option>
-                    </optgroup>
-                    <optgroup label="📖 Menú Completo">
-                      <option *ngFor="let menuItem of menuItems" [value]="menuItem.id">
-                        {{ menuItem.name }} - ${{ menuItem.price.toFixed(2) }}
-                      </option>
-                    </optgroup>
-                  </select>
-                  
-                  <!-- Selector de Productos del Inventario -->
-                  <select 
-                    *ngIf="!showMenuItems"
-                    formControlName="product_id" 
-                    class="input-field text-sm"
-                    appTooltip="Selecciona el producto del inventario que el cliente desea ordenar."
-                    tooltipPosition="top"
-                  >
-                    <option value="">Selecciona producto</option>
-                    <option *ngFor="let product of products" [value]="product.id">
-                      {{ product.name }} - ${{ product.sale_price.toFixed(2) }}
-                    </option>
+                    </ng-container>
                   </select>
                   
                   <input
@@ -372,7 +378,7 @@
               <div class="flex justify-between items-center">
                 <span class="font-medium text-gray-700">Total de la orden:</span>
                 <span class="text-xl font-bold text-gray-900">
-                  ${{ calculateEstimatedTotal().toFixed(2) }}
+                  ${{ estimatedTotal.toFixed(2) }}
                 </span>
               </div>
               <div class="flex justify-between items-center">
@@ -781,6 +787,175 @@
           Registrar Pago
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Order Modal -->
+<div *ngIf="showEditModal && orderToEdit" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">✏️ Editar Orden #{{ orderToEdit.id }}</h2>
+          <p class="text-sm text-gray-600 mt-1">{{ getTableNumber(orderToEdit.table_id) }} - {{ statusLabels[orderToEdit.status] }}</p>
+        </div>
+        <button (click)="closeEditModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Información Actual -->
+      <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-sm text-gray-600">Total Actual:</p>
+            <p class="text-2xl font-bold text-blue-900">${{ orderToEdit.total.toFixed(2) }}</p>
+          </div>
+          <div *ngIf="orderToEdit.payments && orderToEdit.payments.length > 0" class="text-right">
+            <p class="text-sm text-gray-600">Pagado:</p>
+            <p class="text-lg font-bold text-green-600">${{ getAlreadyPaid(orderToEdit).toFixed(2) }}</p>
+          </div>
+        </div>
+        <p *ngIf="orderToEdit.payments && orderToEdit.payments.length > 0" class="text-xs text-orange-600 mt-2">
+          ⚠️ Esta orden tiene pagos registrados. Si cambias los items, el total cambiará y puede que necesites ajustar los pagos.
+        </p>
+      </div>
+      
+      <form [formGroup]="editForm" (ngSubmit)="saveEditedOrder()">
+        <div class="space-y-4">
+          <!-- Estado de la Orden -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Estado de la Orden *</label>
+            <select 
+              formControlName="status" 
+              class="input-field"
+              appTooltip="Cambia el estado según el progreso: Pendiente → Preparando → Completada"
+              tooltipPosition="top"
+            >
+              <option value="pending">🟡 Pendiente</option>
+              <option value="preparing">🔵 Preparando (En Cocina)</option>
+              <option value="completed">🟢 Completada (Lista)</option>
+              <option value="cancelled">🔴 Cancelada</option>
+            </select>
+          </div>
+          
+          <!-- Toggle Menú/Inventario -->
+          <div class="flex items-center justify-between mb-4">
+            <label class="block text-sm font-medium text-gray-700">Items de la Orden *</label>
+            <div class="flex items-center space-x-3">
+              <div class="flex items-center bg-gray-100 rounded-lg p-1">
+                <button 
+                  type="button"
+                  (click)="showMenuItems = true"
+                  [class]="showMenuItems ? 'bg-white shadow-sm' : 'bg-transparent'"
+                  class="px-3 py-1 text-xs font-medium rounded transition-all"
+                >
+                  📖 Menú
+                </button>
+                <button 
+                  type="button"
+                  (click)="showMenuItems = false"
+                  [class]="!showMenuItems ? 'bg-white shadow-sm' : 'bg-transparent'"
+                  class="px-3 py-1 text-xs font-medium rounded transition-all"
+                >
+                  📦 Inventario
+                </button>
+              </div>
+              <button type="button" (click)="addEditItem()" class="btn-primary text-sm">
+                + Agregar Item
+              </button>
+            </div>
+          </div>
+          
+          <!-- Items List -->
+          <div formArrayName="items" class="space-y-3">
+            <div *ngFor="let item of editItemsArray.controls; let i = index" [formGroupName]="i" 
+                 class="flex items-start space-x-2 p-3 bg-gray-50 rounded-lg border">
+               <div class="flex-1 grid grid-cols-2 gap-2">
+                 <!-- Selector Unificado -->
+                 <select 
+                   formControlName="product_id" 
+                   class="input-field text-sm"
+                 >
+                   <!-- Opciones de Menú -->
+                   <ng-container *ngIf="isMenuItemSource(item)">
+                     <option value="">Selecciona platillo</option>
+                     <optgroup label="🌟 Destacados" *ngIf="hasFeaturedItems">
+                       <option *ngFor="let menuItem of featuredMenuItems" [value]="menuItem.id">
+                         {{ menuItem.name }} - ${{ menuItem.price.toFixed(2) }}
+                       </option>
+                     </optgroup>
+                     <optgroup label="📖 Menú Completo">
+                       <option *ngFor="let menuItem of menuItems" [value]="menuItem.id">
+                         {{ menuItem.name }} - ${{ menuItem.price.toFixed(2) }}
+                       </option>
+                     </optgroup>
+                   </ng-container>
+                   
+                   <!-- Opciones de Inventario -->
+                   <ng-container *ngIf="!isMenuItemSource(item)">
+                     <option value="">Selecciona producto</option>
+                     <option *ngFor="let product of products" [value]="product.id">
+                       {{ product.name }} - ${{ product.sale_price.toFixed(2) }}
+                       </option>
+                   </ng-container>
+                 </select>
+                
+                <input
+                  type="number"
+                  formControlName="quantity"
+                  step="0.01"
+                  placeholder="Cantidad"
+                  class="input-field text-sm"
+                />
+                
+                <input
+                  type="text"
+                  formControlName="notes"
+                  placeholder="Notas del item..."
+                  class="input-field text-sm col-span-2"
+                />
+              </div>
+              
+              <button
+                type="button"
+                (click)="removeEditItem(i)"
+                class="text-red-600 hover:text-red-800 p-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Nuevo Total Estimado -->
+          <div class="p-4 bg-green-50 rounded-lg border-2 border-green-300">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-gray-800">Nuevo Total Estimado:</span>
+              <span class="text-2xl font-bold text-green-600">
+                ${{ getEditEstimatedTotal().toFixed(2) }}
+              </span>
+            </div>
+            <p *ngIf="getEditEstimatedTotal() !== orderToEdit.total" class="text-xs text-gray-600 mt-2">
+              El total cambió de ${{ orderToEdit.total.toFixed(2) }} a ${{ getEditEstimatedTotal().toFixed(2) }}
+              ({{ getEditEstimatedTotal() > orderToEdit.total ? '+' : '' }}${{ (getEditEstimatedTotal() - orderToEdit.total).toFixed(2) }})
+            </p>
+          </div>
+        </div>
+        
+        <div class="mt-6 flex justify-end space-x-3">
+          <button type="button" (click)="closeEditModal()" class="btn-secondary">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="editForm.invalid || editItemsArray.length === 0" class="btn-primary disabled:opacity-50">
+            Guardar Cambios
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>

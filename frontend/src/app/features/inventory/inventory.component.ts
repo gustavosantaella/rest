@@ -59,7 +59,8 @@ export class InventoryComponent implements OnInit {
       purchase_price: [0, [Validators.required, Validators.min(0)]],
       sale_price: [0, [Validators.required, Validators.min(0)]],
       stock: [0, [Validators.required, Validators.min(0)]],
-      min_stock: [0, [Validators.required, Validators.min(0)]]
+      min_stock: [0, [Validators.required, Validators.min(0)]],
+      show_in_catalog: [false]  // Por defecto no se muestra
     });
     
     this.categoryForm = this.fb.group({

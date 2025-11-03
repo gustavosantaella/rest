@@ -24,6 +24,7 @@ export interface Product {
   sale_price: number;
   stock: number;
   min_stock: number;
+  show_in_catalog: boolean;  // Mostrar en selector de órdenes
   created_at: string;
   updated_at?: string;
 }
@@ -37,6 +38,7 @@ export interface ProductCreate {
   sale_price: number;
   stock: number;
   min_stock: number;
+  show_in_catalog: boolean;
 }
 
 export interface CategoryCreate {

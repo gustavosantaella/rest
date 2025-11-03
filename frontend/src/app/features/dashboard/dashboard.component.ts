@@ -50,9 +50,12 @@ export class DashboardComponent implements OnInit {
     this.orderService.getOrders().subscribe({
       next: (orders) => {
         this.stats.totalOrders = orders.length;
-        this.stats.pendingOrders = orders.filter(o => o.status === OrderStatus.PENDING || o.status === OrderStatus.IN_PROGRESS).length;
+        this.stats.pendingOrders = orders.filter(o => 
+          o.status === OrderStatus.PENDING || o.status === OrderStatus.PREPARING
+        ).length;
+        // Revenue de órdenes con payment_status = 'paid'
         this.stats.todayRevenue = orders
-          .filter(o => o.status === OrderStatus.PAID)
+          .filter(o => o.payment_status === 'paid')
           .reduce((sum, o) => sum + o.total, 0);
         this.recentOrders = orders.slice(0, 5);
       },
@@ -86,11 +89,10 @@ export class DashboardComponent implements OnInit {
   
   getOrderStatusClass(status: OrderStatus): string {
     const classes: Record<OrderStatus, string> = {
-      [OrderStatus.PENDING]: 'badge-warning',
-      [OrderStatus.IN_PROGRESS]: 'badge-info',
-      [OrderStatus.COMPLETED]: 'badge-success',
-      [OrderStatus.PAID]: 'badge-success',
-      [OrderStatus.CANCELLED]: 'badge-danger'
+      [OrderStatus.PENDING]: 'badge-warning',     // 🟡 Amarillo
+      [OrderStatus.PREPARING]: 'badge-info',      // 🔵 Azul
+      [OrderStatus.COMPLETED]: 'badge-success',   // 🟢 Verde
+      [OrderStatus.CANCELLED]: 'badge-danger'     // 🔴 Rojo
     };
     return classes[status];
   }
@@ -98,9 +100,8 @@ export class DashboardComponent implements OnInit {
   getOrderStatusText(status: OrderStatus): string {
     const texts: Record<OrderStatus, string> = {
       [OrderStatus.PENDING]: 'Pendiente',
-      [OrderStatus.IN_PROGRESS]: 'En Progreso',
+      [OrderStatus.PREPARING]: 'Preparando',
       [OrderStatus.COMPLETED]: 'Completada',
-      [OrderStatus.PAID]: 'Pagada',
       [OrderStatus.CANCELLED]: 'Cancelada'
     };
     return texts[status];

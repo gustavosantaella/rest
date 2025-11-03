@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Enum, Text
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime, Enum, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
@@ -41,6 +41,9 @@ class Product(Base):
     # Inventario
     stock = Column(Float, default=0)  # Stock actual
     min_stock = Column(Float, default=0)  # Stock mínimo para alerta
+    
+    # Mostrar en catálogo (selector de órdenes)
+    show_in_catalog = Column(Boolean, default=False)  # Por defecto no se muestra
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

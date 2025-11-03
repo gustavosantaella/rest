@@ -1,9 +1,8 @@
 export enum OrderStatus {
-  PENDING = 'pending',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled',
-  PAID = 'paid'
+  PENDING = 'pending',       // Pendiente
+  PREPARING = 'preparing',   // Preparando
+  COMPLETED = 'completed',   // Completada
+  CANCELLED = 'cancelled'    // Cancelada
 }
 
 export enum PaymentMethod {
@@ -83,5 +82,9 @@ export interface OrderCreate {
 
 export interface AddPaymentsToOrder {
   payments: OrderPaymentCreate[];
+}
+
+export interface UpdateOrderItems {
+  items: OrderItemCreate[];
 }
 

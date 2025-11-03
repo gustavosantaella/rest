@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Order, OrderCreate, AddPaymentsToOrder } from '../models/order.model';
+import { Order, OrderCreate, AddPaymentsToOrder, UpdateOrderItems } from '../models/order.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -33,6 +33,10 @@ export class OrderService {
   
   addPaymentsToOrder(orderId: number, paymentsData: AddPaymentsToOrder): Observable<Order> {
     return this.http.post<Order>(`${this.apiUrl}/${orderId}/payments`, paymentsData);
+  }
+  
+  updateOrderItems(orderId: number, itemsData: UpdateOrderItems): Observable<Order> {
+    return this.http.put<Order>(`${this.apiUrl}/${orderId}/items`, itemsData);
   }
 }
 
