@@ -1,0 +1,419 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800">Menú del Restaurante</h1>
+      <p class="text-gray-600 mt-1">Gestiona los platillos y bebidas que ofreces</p>
+    </div>
+    <div class="flex space-x-3">
+      <button (click)="openCategoryModal()" class="btn-secondary">
+        + Nueva Categoría
+      </button>
+      <button (click)="openItemModal()" class="btn-primary">
+        + Nuevo Platillo
+      </button>
+    </div>
+  </div>
+  
+  <!-- Filters -->
+  <div class="card">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filterItems()"
+          placeholder="Buscar platillo..."
+          class="input-field"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+        <select
+          [(ngModel)]="selectedCategory"
+          (ngModelChange)="filterItems()"
+          class="input-field"
+        >
+          <option value="">Todas las categorías</option>
+          <option *ngFor="let category of categories" [value]="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+      <div class="flex items-end">
+        <label class="flex items-center space-x-2 cursor-pointer">
+          <input
+            type="checkbox"
+            [(ngModel)]="showOnlyAvailable"
+            (ngModelChange)="filterItems()"
+            class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+          />
+          <span class="text-sm font-medium text-gray-700">Solo disponibles</span>
+        </label>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex items-center justify-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+  </div>
+  
+  <!-- Menu Items Grid -->
+  <div *ngIf="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div *ngFor="let item of filteredItems" class="card hover:shadow-xl transition-shadow group relative overflow-hidden">
+      <!-- Featured Badge -->
+      <div *ngIf="item.is_featured" class="absolute top-2 right-2 z-10">
+        <span class="bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+          ⭐ Destacado
+        </span>
+      </div>
+      
+      <!-- Image -->
+      <div class="h-48 bg-gradient-to-br from-primary-100 to-primary-200 rounded-t-lg overflow-hidden">
+        <img 
+          *ngIf="item.image_url" 
+          [src]="item.image_url" 
+          [alt]="item.name"
+          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+        />
+        <div *ngIf="!item.image_url" class="w-full h-full flex items-center justify-center">
+          <svg class="w-24 h-24 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+      </div>
+      
+      <!-- Content -->
+      <div class="p-4">
+        <div class="flex items-start justify-between mb-2">
+          <div class="flex-1">
+            <h3 class="text-lg font-bold text-gray-800 line-clamp-1">{{ item.name }}</h3>
+            <span class="text-xs text-gray-500">{{ getCategoryName(item.category_id) }}</span>
+          </div>
+          <div class="text-right">
+            <p class="text-xl font-bold text-green-600">${{ item.price.toFixed(2) }}</p>
+          </div>
+        </div>
+        
+        <p class="text-sm text-gray-600 line-clamp-2 mb-3 min-h-[40px]">
+          {{ item.description || 'Sin descripción' }}
+        </p>
+        
+        <!-- Ingredientes -->
+        <div *ngIf="item.ingredients && item.ingredients.length > 0" class="mb-3 border-t pt-2">
+          <p class="text-xs font-medium text-gray-500 mb-1">Ingredientes:</p>
+          <div class="flex flex-wrap gap-1">
+            <span *ngFor="let ing of item.ingredients" class="text-xs bg-gray-100 px-2 py-1 rounded">
+              {{ ing.product_name || getProductName(ing.product_id) }} ({{ ing.quantity }}{{ getProductUnit(ing.product_id) }})
+            </span>
+          </div>
+        </div>
+        
+        <!-- Info -->
+        <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+          <span *ngIf="item.preparation_time">
+            🕐 {{ item.preparation_time }} min
+          </span>
+          <span [class]="item.is_available ? 'text-green-600 font-medium' : 'text-red-600 font-medium'">
+            {{ item.is_available ? '✓ Disponible' : '✗ No disponible' }}
+          </span>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex space-x-2">
+          <button
+            (click)="toggleAvailability(item)"
+            [class]="item.is_available ? 'btn-secondary' : 'btn-success'"
+            class="flex-1 text-sm py-2"
+          >
+            {{ item.is_available ? 'Deshabilitar' : 'Habilitar' }}
+          </button>
+          <button
+            (click)="openItemModal(item)"
+            class="btn-secondary text-sm py-2 px-3"
+            title="Editar"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+          </button>
+          <button
+            (click)="deleteItem(item)"
+            class="btn-danger text-sm py-2 px-3"
+            title="Eliminar"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredItems.length === 0" class="card text-center py-12">
+    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+    </svg>
+    <h3 class="text-lg font-medium text-gray-900 mb-2">No hay platillos en el menú</h3>
+    <p class="text-gray-500 mb-4">Comienza agregando tu primer platillo</p>
+    <button (click)="openItemModal()" class="btn-primary">
+      Crear Platillo
+    </button>
+  </div>
+</div>
+
+<!-- Menu Item Modal -->
+<div *ngIf="showItemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold">{{ editingItem ? 'Editar' : 'Nuevo' }} Platillo</h2>
+        <button (click)="closeItemModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <form [formGroup]="itemForm" (ngSubmit)="saveItem()">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Platillo *</label>
+            <input 
+              type="text" 
+              formControlName="name" 
+              class="input-field"
+              appTooltip="Nombre del platillo como aparecerá en el menú. Ej: Hamburguesa Especial, Ensalada César"
+              tooltipPosition="top"
+            />
+          </div>
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+            <textarea 
+              formControlName="description" 
+              rows="3" 
+              class="input-field"
+              appTooltip="Descripción apetitosa del platillo. Incluye ingredientes principales y características especiales."
+              tooltipPosition="top"
+            ></textarea>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Categoría *</label>
+            <select 
+              formControlName="category_id" 
+              class="input-field"
+              appTooltip="Categoría del menú: Entradas, Platos Fuertes, Postres, Bebidas, etc."
+              tooltipPosition="top"
+            >
+              <option value="">Selecciona categoría</option>
+              <option *ngFor="let category of categories" [value]="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Precio *</label>
+            <input 
+              type="number" 
+              formControlName="price" 
+              step="0.01" 
+              class="input-field"
+              appTooltip="Precio de venta del platillo al público."
+              tooltipPosition="top"
+            />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tiempo de Preparación (min)</label>
+            <input 
+              type="number" 
+              formControlName="preparation_time" 
+              class="input-field"
+              appTooltip="Tiempo estimado en minutos para preparar este platillo. Ayuda a informar al cliente."
+              tooltipPosition="top"
+            />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">URL de Imagen</label>
+            <input 
+              type="url" 
+              formControlName="image_url" 
+              class="input-field"
+              placeholder="https://..."
+              appTooltip="URL de la imagen del platillo. Mejora la presentación del menú."
+              tooltipPosition="top"
+            />
+          </div>
+          
+          <div class="md:col-span-2 flex space-x-6">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                formControlName="is_available"
+                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span class="text-sm font-medium text-gray-700">Disponible ahora</span>
+            </label>
+            
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                formControlName="is_featured"
+                class="rounded border-gray-300 text-yellow-500 focus:ring-yellow-500"
+              />
+              <span class="text-sm font-medium text-gray-700">⭐ Destacado</span>
+            </label>
+          </div>
+          
+          <!-- Ingredientes Section -->
+          <div class="md:col-span-2 border-t pt-4">
+            <div class="flex items-center justify-between mb-3">
+              <label class="block text-sm font-medium text-gray-700">
+                Ingredientes (opcional)
+              </label>
+              <button type="button" (click)="addIngredient()" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                + Agregar Ingrediente
+              </button>
+            </div>
+            
+            <div formArrayName="ingredients" class="space-y-2">
+              <div *ngFor="let ingredient of ingredientsArray.controls; let i = index" 
+                   [formGroupName]="i" 
+                   class="flex items-start space-x-2 p-3 bg-gray-50 rounded-lg">
+                <div class="flex-1 grid grid-cols-2 gap-2">
+                  <select 
+                    formControlName="product_id" 
+                    class="input-field text-sm"
+                    appTooltip="Selecciona el ingrediente del inventario que se usa para preparar este platillo."
+                    tooltipPosition="top"
+                  >
+                    <option value="">Selecciona ingrediente</option>
+                    <option *ngFor="let product of products" [value]="product.id">
+                      {{ product.name }} ({{ getProductUnit(product.id) }})
+                    </option>
+                  </select>
+                  
+                  <input
+                    type="number"
+                    formControlName="quantity"
+                    step="0.01"
+                    placeholder="Cantidad"
+                    class="input-field text-sm"
+                    appTooltip="Cantidad del ingrediente necesaria para preparar una porción de este platillo."
+                    tooltipPosition="top"
+                  />
+                </div>
+                
+                <button
+                  type="button"
+                  (click)="removeIngredient(i)"
+                  class="text-red-600 hover:text-red-800 p-2"
+                  title="Eliminar ingrediente"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+              
+              <div *ngIf="ingredientsArray.length === 0" class="text-center py-4 text-gray-500 text-sm">
+                No hay ingredientes agregados. Click en "+ Agregar Ingrediente" para agregar.
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-6 flex justify-end space-x-3">
+          <button type="button" (click)="closeItemModal()" class="btn-secondary">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="itemForm.invalid" class="btn-primary disabled:opacity-50">
+            Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div *ngIf="showCategoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold">{{ editingCategory ? 'Editar' : 'Nueva' }} Categoría</h2>
+        <button (click)="closeCategoryModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
+            <input 
+              type="text" 
+              formControlName="name" 
+              class="input-field"
+              appTooltip="Nombre de la categoría. Ej: Entradas, Platos Fuertes, Postres, Bebidas, Cócteles"
+              tooltipPosition="top"
+            />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+            <textarea 
+              formControlName="description" 
+              rows="3" 
+              class="input-field"
+              appTooltip="Descripción opcional de la categoría."
+              tooltipPosition="top"
+            ></textarea>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Orden de Visualización</label>
+            <input 
+              type="number" 
+              formControlName="display_order" 
+              class="input-field"
+              appTooltip="Orden en que aparece esta categoría en el menú. Menor número = aparece primero."
+              tooltipPosition="top"
+            />
+          </div>
+          
+          <div>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                formControlName="is_active"
+                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span class="text-sm font-medium text-gray-700">Categoría activa</span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="mt-6 flex justify-end space-x-3">
+          <button type="button" (click)="closeCategoryModal()" class="btn-secondary">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="categoryForm.invalid" class="btn-primary disabled:opacity-50">
+            Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

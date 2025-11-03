@@ -4,11 +4,12 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { RouterLink } from '@angular/router';
 import { TableService } from '../../core/services/table.service';
 import { Table, TableStatus, TableCreate } from '../../core/models/table.model';
+import { TooltipDirective } from '../../shared/directives/tooltip.directive';
 
 @Component({
   selector: 'app-tables',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, TooltipDirective],
   templateUrl: './tables.component.html',
   styleUrls: ['./tables.component.scss']
 })

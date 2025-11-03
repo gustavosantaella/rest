@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base, SessionLocal
-from .routers import auth, users, products, tables, orders
+from .routers import auth, users, products, tables, orders, menu
 from .models.user import User, UserRole
 from .utils.security import get_password_hash
 
@@ -57,6 +57,7 @@ app.include_router(users.router, prefix="/api")
 app.include_router(products.router, prefix="/api")
 app.include_router(tables.router, prefix="/api")
 app.include_router(orders.router, prefix="/api")
+app.include_router(menu.router, prefix="/api")
 
 
 @app.get("/")

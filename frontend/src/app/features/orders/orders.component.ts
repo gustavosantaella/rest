@@ -4,14 +4,17 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Va
 import { OrderService } from '../../core/services/order.service';
 import { ProductService } from '../../core/services/product.service';
 import { TableService } from '../../core/services/table.service';
+import { MenuService } from '../../core/services/menu.service';
 import { Order, OrderStatus, PaymentMethod, OrderCreate, OrderItemCreate } from '../../core/models/order.model';
 import { Product } from '../../core/models/product.model';
 import { Table, TableStatus } from '../../core/models/table.model';
+import { MenuItem } from '../../core/models/menu.model';
+import { TooltipDirective } from '../../shared/directives/tooltip.directive';
 
 @Component({
   selector: 'app-orders',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TooltipDirective],
   templateUrl: './orders.component.html',
   styleUrls: ['./orders.component.scss']
 })
@@ -19,11 +22,15 @@ export class OrdersComponent implements OnInit {
   private orderService = inject(OrderService);
   private productService = inject(ProductService);
   private tableService = inject(TableService);
+  private menuService = inject(MenuService);
   private fb = inject(FormBuilder);
   
   orders: Order[] = [];
   products: Product[] = [];
+  menuItems: MenuItem[] = [];
   tables: Table[] = [];
+  
+  showMenuItems = true; // Toggle para mostrar menú o inventario
   
   showModal = false;
   showDetailModal = false;
@@ -98,6 +105,12 @@ export class OrdersComponent implements OnInit {
     this.productService.getProducts().subscribe({
       next: (products) => {
         this.products = products;
+      }
+    });
+    
+    this.menuService.getMenuItems(undefined, true).subscribe({
+      next: (items) => {
+        this.menuItems = items;
       }
     });
     
@@ -211,6 +224,28 @@ export class OrdersComponent implements OnInit {
     if (!tableId) return 'Para llevar';
     const table = this.tables.find(t => t.id === tableId);
     return table ? `Mesa ${table.number}` : `Mesa ${tableId}`;
+  }
+  
+  getMenuItemName(menuItemId: number): string {
+    const item = this.menuItems.find(m => m.id === menuItemId);
+    return item?.name || '';
+  }
+  
+  getMenuItemPrice(menuItemId: number): number {
+    const item = this.menuItems.find(m => m.id === menuItemId);
+    return item?.price || 0;
+  }
+  
+  toggleItemSource(): void {
+    this.showMenuItems = !this.showMenuItems;
+  }
+  
+  get featuredMenuItems(): MenuItem[] {
+    return this.menuItems.filter(m => m.is_featured);
+  }
+  
+  get hasFeaturedItems(): boolean {
+    return this.featuredMenuItems.length > 0;
   }
 }
 

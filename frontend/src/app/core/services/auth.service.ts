@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap, catchError, of } from 'rxjs';
 import { User, LoginRequest, LoginResponse } from '../models/user.model';
 import { environment } from '../../../environments/environment';
 
@@ -56,9 +56,26 @@ export class AuthService {
   private loadCurrentUser(): void {
     if (this.isAuthenticated()) {
       this.http.get<User>(`${environment.apiUrl}/users/me`)
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            // Solo hacer logout si el token es inválido (401 o 403)
+            if (error.status === 401 || error.status === 403) {
+              console.log('Token inválido o expirado');
+              localStorage.removeItem(this.TOKEN_KEY);
+              this.currentUserSubject.next(null);
+            } else {
+              // Otros errores (red, servidor, etc.) no desloguean
+              console.error('Error cargando usuario, pero manteniendo sesión:', error.status);
+            }
+            return of(null);
+          })
+        )
         .subscribe({
-          next: user => this.currentUserSubject.next(user),
-          error: () => this.logout()
+          next: user => {
+            if (user) {
+              this.currentUserSubject.next(user);
+            }
+          }
         });
     }
   }

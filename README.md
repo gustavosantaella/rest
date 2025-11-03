@@ -9,6 +9,7 @@ Sistema completo de gestión para restaurantes, kioskos y locales comerciales. D
 - ✅ Autenticación JWT con roles
 - ✅ Base de datos PostgreSQL
 - ✅ Gestión de inventario con múltiples unidades de medida
+- ✅ **Menú del Restaurante** - Gestión de platillos y categorías (¡NUEVO!)
 - ✅ Sistema de órdenes con cálculo automático
 - ✅ Gestión de mesas y estados
 - ✅ Control de usuarios y permisos
@@ -17,9 +18,12 @@ Sistema completo de gestión para restaurantes, kioskos y locales comerciales. D
 - ✅ Interfaz moderna y responsive
 - ✅ Dashboard con estadísticas
 - ✅ Gestión completa de inventario
+- ✅ **Menú Digital** - Catálogo de platillos con imágenes
 - ✅ Sistema de órdenes intuitivo
 - ✅ Control de mesas visual
 - ✅ Administración de usuarios
+- ✅ **Tooltips informativos** en todos los campos
+- ✅ **Loaders automáticos** en todas las peticiones (¡NUEVO!)
 
 ## 📦 Características del Inventario
 
@@ -99,6 +103,18 @@ npm start
 ```
 
 Frontend disponible en: `http://localhost:4200`
+
+## 💡 Sistema de Tooltips
+
+Todos los campos de formularios incluyen tooltips informativos que explican:
+- **Qué ingresar** en cada campo
+- **Formato esperado** y ejemplos
+- **Cómo se usa** esa información en el sistema
+- **Consejos** y mejores prácticas
+
+**Uso**: Simplemente pasa el mouse (hover) o haz focus en cualquier campo para ver la ayuda contextual.
+
+Ver más detalles en [README_TOOLTIP.md](frontend/README_TOOLTIP.md)
 
 ## 📁 Estructura del Proyecto
 
@@ -181,6 +197,7 @@ Al iniciar el backend por primera vez, se crea automáticamente un usuario admin
 
 - [Backend README](./backend/README.md) - Documentación detallada del backend
 - [Frontend README](./frontend/README.md) - Documentación detallada del frontend
+- [Menú Documentation](./MENU_DOCUMENTATION.md) - Guía completa del módulo de menú 🆕
 - [API Docs](http://localhost:8000/docs) - Documentación interactiva de la API
 
 ## 🔄 API Endpoints
@@ -189,11 +206,18 @@ Al iniciar el backend por primera vez, se crea automáticamente un usuario admin
 - `POST /api/auth/register` - Registrar usuario
 - `POST /api/auth/login` - Login
 
-### Productos
+### Productos (Inventario)
 - `GET /api/products/` - Listar productos
 - `POST /api/products/` - Crear producto
 - `PUT /api/products/{id}` - Actualizar producto
 - `DELETE /api/products/{id}` - Eliminar producto
+
+### Menú (Platillos) 🆕
+- `GET /api/menu/items` - Listar platillos
+- `POST /api/menu/items` - Crear platillo
+- `GET /api/menu/items/featured` - Platillos destacados
+- `PUT /api/menu/items/{id}` - Actualizar platillo
+- `DELETE /api/menu/items/{id}` - Eliminar platillo
 
 ### Mesas
 - `GET /api/tables/` - Listar mesas

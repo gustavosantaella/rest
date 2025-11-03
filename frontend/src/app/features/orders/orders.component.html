@@ -110,7 +110,12 @@
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Mesa (opcional)</label>
-            <select formControlName="table_id" class="input-field">
+            <select 
+              formControlName="table_id" 
+              class="input-field"
+              appTooltip="Selecciona la mesa donde se sirve la orden. Déjalo vacío si es para llevar."
+              tooltipPosition="top"
+            >
               <option value="">Para llevar</option>
               <option *ngFor="let table of tables" [value]="table.id">
                 Mesa {{ table.number }} ({{ table.capacity }} personas)
@@ -120,21 +125,77 @@
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Notas</label>
-            <textarea formControlName="notes" rows="2" class="input-field" placeholder="Notas especiales..."></textarea>
+            <textarea 
+              formControlName="notes" 
+              rows="2" 
+              class="input-field" 
+              placeholder="Notas especiales..."
+              appTooltip="Notas especiales de la orden completa. Ej: Cliente habitual, pedido urgente, etc."
+              tooltipPosition="top"
+            ></textarea>
           </div>
           
           <div>
             <div class="flex items-center justify-between mb-2">
               <label class="block text-sm font-medium text-gray-700">Items *</label>
-              <button type="button" (click)="addItem()" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
-                + Agregar item
-              </button>
+              <div class="flex items-center space-x-3">
+                <!-- Toggle Menú/Inventario -->
+                <div class="flex items-center bg-gray-100 rounded-lg p-1">
+                  <button 
+                    type="button"
+                    (click)="showMenuItems = true"
+                    [class]="showMenuItems ? 'bg-white shadow-sm' : 'bg-transparent'"
+                    class="px-3 py-1 text-xs font-medium rounded transition-all"
+                  >
+                    📖 Menú
+                  </button>
+                  <button 
+                    type="button"
+                    (click)="showMenuItems = false"
+                    [class]="!showMenuItems ? 'bg-white shadow-sm' : 'bg-transparent'"
+                    class="px-3 py-1 text-xs font-medium rounded transition-all"
+                  >
+                    📦 Inventario
+                  </button>
+                </div>
+                <button type="button" (click)="addItem()" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                  + Agregar item
+                </button>
+              </div>
             </div>
             
             <div formArrayName="items" class="space-y-3">
               <div *ngFor="let item of itemsArray.controls; let i = index" [formGroupName]="i" class="flex items-start space-x-2 p-3 bg-gray-50 rounded-lg">
                 <div class="flex-1 grid grid-cols-2 gap-2">
-                  <select formControlName="product_id" class="input-field text-sm">
+                  <!-- Selector de Platillos del Menú -->
+                  <select 
+                    *ngIf="showMenuItems"
+                    formControlName="product_id" 
+                    class="input-field text-sm"
+                    appTooltip="Selecciona el platillo del menú que el cliente desea ordenar."
+                    tooltipPosition="top"
+                  >
+                    <option value="">Selecciona platillo</option>
+                    <optgroup label="🌟 Destacados" *ngIf="hasFeaturedItems">
+                      <option *ngFor="let menuItem of featuredMenuItems" [value]="menuItem.id">
+                        {{ menuItem.name }} - ${{ menuItem.price.toFixed(2) }}
+                      </option>
+                    </optgroup>
+                    <optgroup label="📖 Menú Completo">
+                      <option *ngFor="let menuItem of menuItems" [value]="menuItem.id">
+                        {{ menuItem.name }} - ${{ menuItem.price.toFixed(2) }}
+                      </option>
+                    </optgroup>
+                  </select>
+                  
+                  <!-- Selector de Productos del Inventario -->
+                  <select 
+                    *ngIf="!showMenuItems"
+                    formControlName="product_id" 
+                    class="input-field text-sm"
+                    appTooltip="Selecciona el producto del inventario que el cliente desea ordenar."
+                    tooltipPosition="top"
+                  >
                     <option value="">Selecciona producto</option>
                     <option *ngFor="let product of products" [value]="product.id">
                       {{ product.name }} - ${{ product.sale_price.toFixed(2) }}
@@ -147,6 +208,8 @@
                     step="0.01"
                     placeholder="Cantidad"
                     class="input-field text-sm"
+                    appTooltip="Cantidad del producto. Puede ser decimal para productos por peso (ej: 0.5 kg)."
+                    tooltipPosition="top"
                   />
                   
                   <input
@@ -154,6 +217,8 @@
                     formControlName="notes"
                     placeholder="Notas del item..."
                     class="input-field text-sm col-span-2"
+                    appTooltip="Notas especiales para este item. Ej: Sin cebolla, Término medio, Extra queso, etc."
+                    tooltipPosition="top"
                   />
                 </div>
                 

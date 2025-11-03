@@ -89,17 +89,38 @@
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Número de Mesa *</label>
-            <input type="text" formControlName="number" class="input-field" placeholder="Ej: 1, A1, VIP-1" />
+            <input 
+              type="text" 
+              formControlName="number" 
+              class="input-field" 
+              placeholder="Ej: 1, A1, VIP-1"
+              appTooltip="Identificador único de la mesa. Puede ser un número o código alfanumérico (ej: 1, A1, VIP-1)."
+              tooltipPosition="top"
+            />
           </div>
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Capacidad *</label>
-            <input type="number" formControlName="capacity" min="1" class="input-field" />
+            <input 
+              type="number" 
+              formControlName="capacity" 
+              min="1" 
+              class="input-field"
+              appTooltip="Número máximo de personas que pueden sentarse en esta mesa."
+              tooltipPosition="top"
+            />
           </div>
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Ubicación</label>
-            <input type="text" formControlName="location" class="input-field" placeholder="Ej: Terraza, Interior, Salón VIP" />
+            <input 
+              type="text" 
+              formControlName="location" 
+              class="input-field" 
+              placeholder="Ej: Terraza, Interior, Salón VIP"
+              appTooltip="Zona o área donde está ubicada la mesa. Ayuda a organizar el servicio. Ejemplo: Terraza, Interior, Salón VIP."
+              tooltipPosition="top"
+            />
           </div>
         </div>
         

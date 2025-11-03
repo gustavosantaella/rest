@@ -5,6 +5,8 @@ Aplicación Angular con Tailwind CSS para gestión completa de restaurantes, kio
 ## 🚀 Características
 
 - ✅ **Login y Autenticación** con JWT
+- 💡 **Tooltips Informativos** en todos los campos del sistema
+- 🔄 **Loading Automático** en todas las peticiones HTTP
 - 📊 **Dashboard Intuitivo** con estadísticas en tiempo real
 - 📦 **Gestión de Inventario**
   - Productos con múltiples unidades de medida

@@ -135,17 +135,34 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
-            <input type="text" formControlName="name" class="input-field" />
+            <input 
+              type="text" 
+              formControlName="name" 
+              class="input-field"
+              appTooltip="Ingresa el nombre completo del producto. Ejemplo: Coca-Cola 500ml, Pollo por kg, etc."
+              tooltipPosition="top"
+            />
           </div>
           
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
-            <textarea formControlName="description" rows="2" class="input-field"></textarea>
+            <textarea 
+              formControlName="description" 
+              rows="2" 
+              class="input-field"
+              appTooltip="Descripción opcional del producto. Puedes incluir ingredientes, características especiales, etc."
+              tooltipPosition="top"
+            ></textarea>
           </div>
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Categoría *</label>
-            <select formControlName="category_id" class="input-field">
+            <select 
+              formControlName="category_id" 
+              class="input-field"
+              appTooltip="Selecciona la categoría a la que pertenece este producto. Ayuda a organizar tu inventario."
+              tooltipPosition="top"
+            >
               <option value="">Selecciona una categoría</option>
               <option *ngFor="let category of categories" [value]="category.id">
                 {{ category.name }}
@@ -155,7 +172,12 @@
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Unidad de Medida *</label>
-            <select formControlName="unit_type" class="input-field">
+            <select 
+              formControlName="unit_type" 
+              class="input-field"
+              appTooltip="Define cómo se vende este producto: por unidad (ej: botellas), por peso (kg/gramos) o por volumen (litros/ml)."
+              tooltipPosition="top"
+            >
               <option *ngFor="let unitType of unitTypes" [value]="unitType">
                 {{ unitTypeLabels[unitType] }}
               </option>
@@ -164,22 +186,50 @@
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Precio de Compra *</label>
-            <input type="number" formControlName="purchase_price" step="0.01" class="input-field" />
+            <input 
+              type="number" 
+              formControlName="purchase_price" 
+              step="0.01" 
+              class="input-field"
+              appTooltip="Precio al que compras este producto a tu proveedor. Se usa para calcular ganancias."
+              tooltipPosition="top"
+            />
           </div>
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Precio de Venta *</label>
-            <input type="number" formControlName="sale_price" step="0.01" class="input-field" />
+            <input 
+              type="number" 
+              formControlName="sale_price" 
+              step="0.01" 
+              class="input-field"
+              appTooltip="Precio al que vendes este producto al cliente. Debe ser mayor al precio de compra para tener ganancia."
+              tooltipPosition="top"
+            />
           </div>
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Stock Actual *</label>
-            <input type="number" formControlName="stock" step="0.01" class="input-field" />
+            <input 
+              type="number" 
+              formControlName="stock" 
+              step="0.01" 
+              class="input-field"
+              appTooltip="Cantidad actual disponible en inventario. Se reduce automáticamente con cada venta."
+              tooltipPosition="top"
+            />
           </div>
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Stock Mínimo *</label>
-            <input type="number" formControlName="min_stock" step="0.01" class="input-field" />
+            <input 
+              type="number" 
+              formControlName="min_stock" 
+              step="0.01" 
+              class="input-field"
+              appTooltip="Cantidad mínima de seguridad. El sistema te alertará cuando el stock esté por debajo de este valor."
+              tooltipPosition="top"
+            />
           </div>
         </div>
         
@@ -213,12 +263,24 @@
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
-            <input type="text" formControlName="name" class="input-field" />
+            <input 
+              type="text" 
+              formControlName="name" 
+              class="input-field"
+              appTooltip="Nombre de la categoría. Ejemplo: Bebidas, Comidas, Postres, Bebidas Alcohólicas, etc."
+              tooltipPosition="top"
+            />
           </div>
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
-            <textarea formControlName="description" rows="3" class="input-field"></textarea>
+            <textarea 
+              formControlName="description" 
+              rows="3" 
+              class="input-field"
+              appTooltip="Descripción opcional de la categoría para ayudar a organizarte mejor."
+              tooltipPosition="top"
+            ></textarea>
           </div>
         </div>
         
