@@ -68,7 +68,11 @@ app.include_router(public.router, prefix="/api")
 
 # Configurar carpeta de archivos estáticos para imágenes
 UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+UPLOAD_IMAGES_DIR = os.path.join(UPLOAD_DIR, "images")
+
+# Crear carpetas si no existen
+os.makedirs(UPLOAD_IMAGES_DIR, exist_ok=True)
+
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 

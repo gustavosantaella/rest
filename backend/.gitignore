@@ -14,5 +14,18 @@ ENV/
 .idea/
 .vscode/
 *.log
-*.sh
-*.bat
+
+# Uploads (imágenes subidas por usuarios)
+uploads/*
+!uploads/.gitkeep
+!uploads/images/
+uploads/images/*
+!uploads/images/.gitkeep
+
+# Ignorar scripts en raíz, pero no en docs/
+/*.sh
+/*.bat
+
+# Mantener docs y migraciones
+!docs/
+!db/
