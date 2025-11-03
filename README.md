@@ -13,7 +13,8 @@ Sistema completo de gestión para restaurantes, kioskos y locales comerciales. D
 - ✅ Sistema de órdenes con cálculo automático
 - ✅ Gestión de mesas y estados
 - ✅ Control de usuarios y permisos (5 roles)
-- ✅ **Configuración y Socios** - Información legal y gestión de socios (¡NUEVO!)
+- ✅ **Configuración y Socios** - Información legal y gestión de socios
+- ✅ **Perfil Personal** - Cada usuario gestiona su información y contraseña (¡NUEVO!)
 
 ### Frontend (Angular + Tailwind)
 - ✅ Interfaz moderna y responsive
@@ -241,7 +242,12 @@ Al iniciar el backend por primera vez, se crea automáticamente un usuario admin
 - `GET /api/users/me` - Usuario actual
 - `PUT /api/users/{id}` - Actualizar usuario
 
-### Configuración 🆕
+### Perfil Personal 🆕
+- `GET /api/profile/me` - Obtener mi perfil
+- `PUT /api/profile/me` - Actualizar mi perfil
+- `POST /api/profile/change-password` - Cambiar contraseña
+
+### Configuración (Negocio)
 - `GET /api/configuration` - Obtener configuración del negocio
 - `POST /api/configuration` - Crear configuración
 - `PUT /api/configuration` - Actualizar configuración

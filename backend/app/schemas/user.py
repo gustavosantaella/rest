@@ -9,6 +9,8 @@ class UserBase(BaseModel):
     email: EmailStr
     full_name: str
     role: UserRole = UserRole.WAITER
+    dni: Optional[str] = None
+    country: Optional[str] = None
 
 
 class UserCreate(UserBase):
@@ -22,6 +24,8 @@ class UserUpdate(BaseModel):
     role: Optional[UserRole] = None
     password: Optional[str] = None
     is_active: Optional[bool] = None
+    dni: Optional[str] = None
+    country: Optional[str] = None
 
 
 class UserResponse(UserBase):

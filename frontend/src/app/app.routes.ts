@@ -41,8 +41,17 @@ export const routes: Routes = [
         loadComponent: () => import('./features/users/users.component').then(m => m.UsersComponent)
       },
       {
-        path: 'configuration',
+        path: 'profile',
+        loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
+      },
+      {
+        path: 'configuration/business',
         loadComponent: () => import('./features/configuration/configuration.component').then(m => m.ConfigurationComponent)
+      },
+      {
+        path: 'configuration',
+        redirectTo: 'configuration/business',
+        pathMatch: 'full'
       }
     ]
   },

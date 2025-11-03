@@ -196,3 +196,13 @@ body {
   }
 }
 
+/* Dropdown Animation */
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+/* Smooth transitions */
+.transition-transform {
+  transition: transform 0.2s ease-in-out;
+}
+

@@ -23,6 +23,7 @@ export class LayoutComponent implements OnInit {
   businessName: string = 'Sistema de Gestión';
   businessInitials: string = 'SG';
   sidebarOpen = true;
+  configDropdownOpen = false;
   
   constructor() {
     this.authService.currentUser$.subscribe(user => {
@@ -64,6 +65,10 @@ export class LayoutComponent implements OnInit {
   
   toggleSidebar(): void {
     this.sidebarOpen = !this.sidebarOpen;
+  }
+  
+  toggleConfigDropdown(): void {
+    this.configDropdownOpen = !this.configDropdownOpen;
   }
   
   logout(): void {

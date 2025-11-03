@@ -13,6 +13,8 @@ export interface User {
   full_name: string;
   role: UserRole;
   is_active: boolean;
+  dni?: string;
+  country?: string;
   created_at: string;
 }
 
