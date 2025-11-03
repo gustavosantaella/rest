@@ -238,23 +238,28 @@ export class TablesComponent implements OnInit, OnDestroy {
   
   // Métodos para agregar items
   openAddItemsModal(table: Table): void {
-    if (table.status !== TableStatus.OCCUPIED) {
-      this.notificationService.warning('Esta mesa no tiene orden activa');
-      return;
-    }
-    
     this.selectedTable = table;
-    this.orderService.getOrderByTable(table.id).subscribe({
-      next: (order) => {
-        this.selectedOrder = order;
-        this.addItemsArray.clear();
-        this.addNewItem();
-        this.showAddItemsModal = true;
-      },
-      error: (err) => {
-        this.notificationService.error('Error: ' + (err.error?.detail || 'No se pudo cargar la orden'));
-      }
-    });
+    
+    if (table.status === TableStatus.OCCUPIED) {
+      // Mesa ocupada - agregar a orden existente
+      this.orderService.getOrderByTable(table.id).subscribe({
+        next: (order) => {
+          this.selectedOrder = order;
+          this.addItemsArray.clear();
+          this.addNewItem();
+          this.showAddItemsModal = true;
+        },
+        error: (err) => {
+          this.notificationService.error('Error: ' + (err.error?.detail || 'No se pudo cargar la orden'));
+        }
+      });
+    } else {
+      // Mesa disponible - crear nueva orden
+      this.selectedOrder = null; // Indicador de que es nueva orden
+      this.addItemsArray.clear();
+      this.addNewItem();
+      this.showAddItemsModal = true;
+    }
   }
   
   closeAddItemsModal(): void {
@@ -280,12 +285,16 @@ export class TablesComponent implements OnInit, OnDestroy {
   
   toggleSource(): void {
     this.showMenuItems = !this.showMenuItems;
-    // Actualizar source_type de todos los items
-    this.addItemsArray.controls.forEach(control => {
-      control.patchValue({
-        source_type: this.showMenuItems ? 'menu' : 'product',
-        product_id: '' // Limpiar selección
-      });
+  }
+  
+  toggleItemSource(index: number): void {
+    const item = this.addItemsArray.at(index);
+    const currentSourceType = item.get('source_type')?.value;
+    const newSourceType = currentSourceType === 'menu' ? 'product' : 'menu';
+    
+    item.patchValue({
+      source_type: newSourceType,
+      product_id: '' // Limpiar selección al cambiar de fuente
     });
   }
   
@@ -293,6 +302,14 @@ export class TablesComponent implements OnInit, OnDestroy {
     return this.showMenuItems 
       ? this.menuItems.filter(m => m.is_available) 
       : this.products;
+  }
+  
+  get availableMenuItems(): MenuItem[] {
+    return this.menuItems.filter(m => m.is_available);
+  }
+  
+  get availableProducts(): Product[] {
+    return this.products;
   }
   
   getItemPrice(item: any): number {
@@ -305,26 +322,7 @@ export class TablesComponent implements OnInit, OnDestroy {
   }
   
   saveAddedItems(): void {
-    if (!this.selectedOrder || this.addItemsForm.invalid || this.addItemsArray.length === 0) return;
-    
-    // Obtener items existentes
-    const existingItems = this.selectedOrder.items.map(item => {
-      if (item.source_type === 'menu') {
-        return {
-          menu_item_id: item.menu_item_id,
-          quantity: item.quantity,
-          notes: item.notes || '',
-          source_type: 'menu'
-        };
-      } else {
-        return {
-          product_id: item.product_id,
-          quantity: item.quantity,
-          notes: item.notes || '',
-          source_type: 'product'
-        };
-      }
-    });
+    if (!this.selectedTable || this.addItemsForm.invalid || this.addItemsArray.length === 0) return;
     
     // Transformar nuevos items
     const newItems = this.addItemsForm.value.items.map((item: any) => {
@@ -345,23 +343,61 @@ export class TablesComponent implements OnInit, OnDestroy {
       }
     });
     
-    // Combinar items existentes con nuevos
-    const allItems = [...existingItems, ...newItems];
-    
-    const itemsData: UpdateOrderItems = {
-      items: allItems
-    };
-    
-    this.orderService.updateOrderItems(this.selectedOrder.id, itemsData).subscribe({
-      next: () => {
-        this.notificationService.success('Items agregados exitosamente');
-        this.closeAddItemsModal();
-        this.loadTables();
-      },
-      error: (err) => {
-        this.notificationService.error('Error: ' + (err.error?.detail || 'Error al agregar items'));
-      }
-    });
+    if (this.selectedOrder) {
+      // Mesa ocupada - agregar a orden existente
+      const existingItems = this.selectedOrder.items.map(item => {
+        if (item.source_type === 'menu') {
+          return {
+            menu_item_id: item.menu_item_id,
+            quantity: item.quantity,
+            notes: item.notes || '',
+            source_type: 'menu'
+          };
+        } else {
+          return {
+            product_id: item.product_id,
+            quantity: item.quantity,
+            notes: item.notes || '',
+            source_type: 'product'
+          };
+        }
+      });
+      
+      const allItems = [...existingItems, ...newItems];
+      const itemsData: UpdateOrderItems = {
+        items: allItems
+      };
+      
+      this.orderService.updateOrderItems(this.selectedOrder.id, itemsData).subscribe({
+        next: () => {
+          this.notificationService.success('Items agregados exitosamente');
+          this.closeAddItemsModal();
+          this.loadTables();
+        },
+        error: (err) => {
+          this.notificationService.error('Error: ' + (err.error?.detail || 'Error al agregar items'));
+        }
+      });
+    } else {
+      // Mesa disponible - crear nueva orden
+      const orderData = {
+        table_id: this.selectedTable.id,
+        notes: undefined,
+        items: newItems,
+        payments: []
+      };
+      
+      this.orderService.createOrder(orderData).subscribe({
+        next: () => {
+          this.notificationService.success('Orden creada exitosamente');
+          this.closeAddItemsModal();
+          this.loadTables();
+        },
+        error: (err) => {
+          this.notificationService.error('Error: ' + (err.error?.detail || 'Error al crear la orden'));
+        }
+      });
+    }
   }
   
   loadProducts(): void {
