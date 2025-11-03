@@ -229,13 +229,32 @@ export class OrdersComponent implements OnInit {
   }
   
   private createOrderWithData(validPayments: any[]): void {
+    // Transformar items para usar menu_item_id o product_id según corresponda
+    const transformedItems = this.orderForm.value.items.map((item: any) => {
+      if (item.source_type === 'menu') {
+        return {
+          menu_item_id: Number(item.product_id),  // Renombrar product_id a menu_item_id
+          quantity: item.quantity,
+          notes: item.notes || '',
+          source_type: 'menu'
+        };
+      } else {
+        return {
+          product_id: Number(item.product_id),
+          quantity: item.quantity,
+          notes: item.notes || '',
+          source_type: 'product'  // Cambiar 'inventory' a 'product'
+        };
+      }
+    });
+    
     const orderData: OrderCreate = {
       table_id: this.orderForm.value.table_id || undefined,
       notes: this.orderForm.value.notes,
       customer_name: this.orderForm.value.customer_name || undefined,
       customer_email: this.orderForm.value.customer_email || undefined,
       customer_phone: this.orderForm.value.customer_phone || undefined,
-      items: this.orderForm.value.items,
+      items: transformedItems,
       payments: validPayments.map(p => ({
         payment_method_id: p.payment_method_id,
         amount: p.amount,
@@ -594,8 +613,27 @@ export class OrdersComponent implements OnInit {
   saveEditedOrder(): void {
     if (!this.orderToEdit || this.editForm.invalid || this.editItemsArray.length === 0) return;
     
+    // Transformar items para usar menu_item_id o product_id según corresponda
+    const transformedItems = this.editForm.value.items.map((item: any) => {
+      if (item.source_type === 'menu') {
+        return {
+          menu_item_id: Number(item.product_id),
+          quantity: item.quantity,
+          notes: item.notes || '',
+          source_type: 'menu'
+        };
+      } else {
+        return {
+          product_id: Number(item.product_id),
+          quantity: item.quantity,
+          notes: item.notes || '',
+          source_type: 'product'
+        };
+      }
+    });
+    
     const itemsData: UpdateOrderItems = {
-      items: this.editForm.value.items
+      items: transformedItems
     };
     
     const newStatus = this.editForm.value.status;

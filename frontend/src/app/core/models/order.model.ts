@@ -35,7 +35,9 @@ export interface OrderPaymentCreate {
 
 export interface OrderItem {
   id: number;
-  product_id: number;
+  product_id?: number;
+  menu_item_id?: number;
+  source_type?: string;
   quantity: number;
   unit_price: number;
   subtotal: number;
@@ -65,7 +67,9 @@ export interface Order {
 }
 
 export interface OrderItemCreate {
-  product_id: number;
+  product_id?: number;
+  menu_item_id?: number;
+  source_type?: string;
   quantity: number;
   notes?: string;
 }

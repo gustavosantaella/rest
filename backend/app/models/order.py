@@ -62,7 +62,11 @@ class OrderItem(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    
+    # Puede ser producto directo O item del menú (al menos uno debe existir)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=True)
+    menu_item_id = Column(Integer, ForeignKey("menu_items.id"), nullable=True)
+    source_type = Column(String, default="product")  # 'product' o 'menu'
     
     quantity = Column(Float, nullable=False)
     unit_price = Column(Float, nullable=False)  # Precio al momento de la orden
