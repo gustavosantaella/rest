@@ -45,6 +45,9 @@ class Product(Base):
     # Mostrar en catálogo (selector de órdenes)
     show_in_catalog = Column(Boolean, default=False)  # Por defecto no se muestra
     
+    # Imagen del producto
+    image_url = Column(String, nullable=True)  # URL de la imagen del producto
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

@@ -25,6 +25,7 @@ export interface Product {
   stock: number;
   min_stock: number;
   show_in_catalog: boolean;  // Mostrar en selector de órdenes
+  image_url?: string;  // URL de la imagen del producto
   created_at: string;
   updated_at?: string;
 }
@@ -39,6 +40,7 @@ export interface ProductCreate {
   stock: number;
   min_stock: number;
   show_in_catalog: boolean;
+  image_url?: string;
 }
 
 export interface CategoryCreate {

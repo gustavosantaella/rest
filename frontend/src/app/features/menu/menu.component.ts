@@ -6,11 +6,13 @@ import { ProductService } from '../../core/services/product.service';
 import { MenuItem, MenuCategory, MenuItemCreate, MenuCategoryCreate, IngredientItem } from '../../core/models/menu.model';
 import { Product } from '../../core/models/product.model';
 import { TooltipDirective } from '../../shared/directives/tooltip.directive';
+import { ImageUploadComponent } from '../../shared/components/image-upload/image-upload.component';
+import { UploadService } from '../../core/services/upload.service';
 
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TooltipDirective],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TooltipDirective, ImageUploadComponent],
   templateUrl: './menu.component.html',
   styleUrls: ['./menu.component.scss']
 })
@@ -18,6 +20,7 @@ export class MenuComponent implements OnInit {
   private menuService = inject(MenuService);
   private productService = inject(ProductService);
   private fb = inject(FormBuilder);
+  public uploadService = inject(UploadService);
   
   menuItems: MenuItem[] = [];
   categories: MenuCategory[] = [];
@@ -234,6 +237,11 @@ export class MenuComponent implements OnInit {
   getCategoryName(categoryId: number): string {
     const category = this.categories.find(c => c.id === categoryId);
     return category?.name || 'Sin categoría';
+  }
+
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = 'https://via.placeholder.com/400x300?text=No+Image';
   }
   
   getProductName(productId: number): string {

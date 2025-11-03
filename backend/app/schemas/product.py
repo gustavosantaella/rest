@@ -31,6 +31,7 @@ class ProductBase(BaseModel):
     stock: float = 0
     min_stock: float = 0
     show_in_catalog: bool = False  # Por defecto no se muestra en órdenes
+    image_url: Optional[str] = None  # URL de la imagen del producto
 
 
 class ProductCreate(ProductBase):
@@ -47,6 +48,7 @@ class ProductUpdate(BaseModel):
     stock: Optional[float] = None
     min_stock: Optional[float] = None
     show_in_catalog: Optional[bool] = None
+    image_url: Optional[str] = None
 
 
 class ProductResponse(ProductBase):

@@ -74,9 +74,10 @@
       <div class="h-48 bg-gradient-to-br from-primary-100 to-primary-200 rounded-t-lg overflow-hidden">
         <img 
           *ngIf="item.image_url" 
-          [src]="item.image_url" 
+          [src]="uploadService.getFullImageUrl(item.image_url)" 
           [alt]="item.name"
           class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          (error)="onImageError($event)"
         />
         <div *ngIf="!item.image_url" class="w-full h-full flex items-center justify-center">
           <svg class="w-24 h-24 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,17 +123,18 @@
         </div>
         
         <!-- Actions -->
-        <div class="flex space-x-2">
+        <div class="grid grid-cols-3 gap-2">
           <button
             (click)="toggleAvailability(item)"
             [class]="item.is_available ? 'btn-secondary' : 'btn-success'"
-            class="flex-1 text-sm py-2"
+            class="col-span-1 text-xs py-2 px-2 truncate"
+            [title]="item.is_available ? 'Deshabilitar' : 'Habilitar'"
           >
             {{ item.is_available ? 'Deshabilitar' : 'Habilitar' }}
           </button>
           <button
             (click)="openItemModal(item)"
-            class="btn-secondary text-sm py-2 px-3"
+            class="btn-secondary text-sm py-2 px-3 flex items-center justify-center"
             title="Editar"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,7 +143,7 @@
           </button>
           <button
             (click)="deleteItem(item)"
-            class="btn-danger text-sm py-2 px-3"
+            class="btn-danger text-sm py-2 px-3 flex items-center justify-center"
             title="Eliminar"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -241,16 +243,9 @@
             />
           </div>
           
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">URL de Imagen</label>
-            <input 
-              type="url" 
-              formControlName="image_url" 
-              class="input-field"
-              placeholder="https://..."
-              appTooltip="URL de la imagen del platillo. Mejora la presentación del menú."
-              tooltipPosition="top"
-            />
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Imagen del Platillo</label>
+            <app-image-upload formControlName="image_url"></app-image-upload>
           </div>
           
           <div class="md:col-span-2 flex space-x-6">

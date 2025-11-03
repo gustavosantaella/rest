@@ -4,17 +4,20 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ProductService } from '../../core/services/product.service';
 import { Product, Category, UnitType, ProductCreate, CategoryCreate } from '../../core/models/product.model';
 import { TooltipDirective } from '../../shared/directives/tooltip.directive';
+import { ImageUploadComponent } from '../../shared/components/image-upload/image-upload.component';
+import { UploadService } from '../../core/services/upload.service';
 
 @Component({
   selector: 'app-inventory',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TooltipDirective],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TooltipDirective, ImageUploadComponent],
   templateUrl: './inventory.component.html',
   styleUrls: ['./inventory.component.scss']
 })
 export class InventoryComponent implements OnInit {
   private productService = inject(ProductService);
   private fb = inject(FormBuilder);
+  public uploadService = inject(UploadService);
   
   products: Product[] = [];
   categories: Category[] = [];
@@ -60,7 +63,8 @@ export class InventoryComponent implements OnInit {
       sale_price: [0, [Validators.required, Validators.min(0)]],
       stock: [0, [Validators.required, Validators.min(0)]],
       min_stock: [0, [Validators.required, Validators.min(0)]],
-      show_in_catalog: [false]  // Por defecto no se muestra
+      show_in_catalog: [false],  // Por defecto no se muestra
+      image_url: [null]  // URL de la imagen
     });
     
     this.categoryForm = this.fb.group({
@@ -175,6 +179,11 @@ export class InventoryComponent implements OnInit {
   getCategoryName(categoryId: number): string {
     const category = this.categories.find(c => c.id === categoryId);
     return category?.name || 'Sin categoría';
+  }
+
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = 'https://via.placeholder.com/48?text=No+Image';
   }
   
   isLowStock(product: Product): boolean {
