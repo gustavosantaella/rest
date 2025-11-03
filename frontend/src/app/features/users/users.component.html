@@ -1,0 +1,163 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800">Usuarios</h1>
+      <p class="text-gray-600 mt-1">Gestión de usuarios y permisos</p>
+    </div>
+    <button *ngIf="currentUser?.role === UserRole.ADMIN" (click)="openModal()" class="btn-primary">
+      + Nuevo Usuario
+    </button>
+  </div>
+  
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex items-center justify-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+  </div>
+  
+  <!-- Users Grid -->
+  <div *ngIf="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let user of users" class="card hover:shadow-lg transition-shadow">
+      <!-- User Header -->
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+            {{ user.full_name.charAt(0) }}
+          </div>
+          <div>
+            <h3 class="font-bold text-lg">{{ user.full_name }}</h3>
+            <p class="text-sm text-gray-600">{{ '@' + user.username }}</p>
+          </div>
+        </div>
+        
+        <!-- Active Status -->
+        <span [class]="user.is_active ? 'badge-success' : 'badge-danger'" class="badge text-xs">
+          {{ user.is_active ? 'Activo' : 'Inactivo' }}
+        </span>
+      </div>
+      
+      <!-- User Info -->
+      <div class="space-y-2 mb-4">
+        <div class="flex items-center space-x-2 text-sm">
+          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+          <span class="text-gray-600">{{ user.email }}</span>
+        </div>
+        
+        <div class="flex items-center space-x-2">
+          <span [class]="'badge ' + getRoleBadgeClass(user.role)">
+            {{ roleLabels[user.role] }}
+          </span>
+        </div>
+        
+        <p class="text-xs text-gray-500 mt-2">
+          {{ roleDescriptions[user.role] }}
+        </p>
+      </div>
+      
+      <!-- Actions -->
+      <div *ngIf="canManageUser(user)" class="flex space-x-2 pt-4 border-t">
+        <button
+          (click)="openModal(user)"
+          class="flex-1 btn-secondary text-sm py-2"
+        >
+          Editar
+        </button>
+        <button
+          (click)="toggleUserStatus(user)"
+          [class]="user.is_active ? 'btn-secondary' : 'btn-success'"
+          class="flex-1 text-sm py-2"
+        >
+          {{ user.is_active ? 'Desactivar' : 'Activar' }}
+        </button>
+        <button
+          *ngIf="user.id !== currentUser?.id"
+          (click)="deleteUser(user)"
+          class="btn-danger text-sm py-2 px-3"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Current User Badge -->
+      <div *ngIf="user.id === currentUser?.id" class="mt-3 text-center">
+        <span class="badge badge-info text-xs">
+          Tú
+        </span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Empty State -->
+  <div *ngIf="!loading && users.length === 0" class="card text-center py-12">
+    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+    </svg>
+    <h3 class="text-lg font-medium text-gray-900 mb-2">No hay usuarios registrados</h3>
+    <p class="text-gray-500">Comienza creando el primer usuario</p>
+  </div>
+</div>
+
+<!-- User Modal -->
+<div *ngIf="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold">{{ editingUser ? 'Editar' : 'Nuevo' }} Usuario</h2>
+        <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre Completo *</label>
+            <input type="text" formControlName="full_name" class="input-field" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Usuario *</label>
+            <input type="text" formControlName="username" class="input-field" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+            <input type="email" formControlName="email" class="input-field" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Rol *</label>
+            <select formControlName="role" class="input-field">
+              <option *ngFor="let role of userRoles" [value]="role">
+                {{ roleLabels[role] }} - {{ roleDescriptions[role] }}
+              </option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Contraseña {{ editingUser ? '(dejar en blanco para mantener)' : '*' }}
+            </label>
+            <input type="password" formControlName="password" class="input-field" />
+          </div>
+        </div>
+        
+        <div class="mt-6 flex justify-end space-x-3">
+          <button type="button" (click)="closeModal()" class="btn-secondary">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="userForm.invalid" class="btn-primary disabled:opacity-50">
+            Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

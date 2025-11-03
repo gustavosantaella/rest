@@ -1,0 +1,118 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800">Gestión de Mesas</h1>
+      <p class="text-gray-600 mt-1">Administra las mesas del restaurante</p>
+    </div>
+    <button (click)="openModal()" class="btn-primary">
+      + Nueva Mesa
+    </button>
+  </div>
+  
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex items-center justify-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+  </div>
+  
+  <!-- Tables Grid -->
+  <div *ngIf="!loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div *ngFor="let table of tables" [class]="'border-2 rounded-xl p-6 transition-all hover:shadow-lg ' + getStatusClass(table.status)">
+      <!-- Table Header -->
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-2xl font-bold">Mesa {{ table.number }}</h3>
+          <p class="text-sm opacity-75">{{ table.location || 'Sin ubicación' }}</p>
+        </div>
+        <div class="flex space-x-1">
+          <button (click)="openModal(table)" class="p-2 hover:bg-white hover:bg-opacity-30 rounded">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+          </button>
+          <button (click)="deleteTable(table)" class="p-2 hover:bg-white hover:bg-opacity-30 rounded">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Capacity -->
+      <div class="flex items-center space-x-2 mb-4">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+        <span class="font-medium">{{ table.capacity }} personas</span>
+      </div>
+      
+      <!-- Status Selector -->
+      <select
+        [value]="table.status"
+        (change)="updateTableStatus(table, $any($event.target).value)"
+        class="w-full px-3 py-2 border-2 rounded-lg font-medium cursor-pointer focus:ring-2 focus:ring-primary-500 focus:outline-none"
+      >
+        <option *ngFor="let status of tableStatuses" [value]="status">
+          {{ statusLabels[status] }}
+        </option>
+      </select>
+    </div>
+  </div>
+  
+  <!-- Empty State -->
+  <div *ngIf="!loading && tables.length === 0" class="card text-center py-12">
+    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+    </svg>
+    <h3 class="text-lg font-medium text-gray-900 mb-2">No hay mesas registradas</h3>
+    <p class="text-gray-500 mb-4">Comienza creando tu primera mesa</p>
+    <button (click)="openModal()" class="btn-primary">
+      Crear Mesa
+    </button>
+  </div>
+</div>
+
+<!-- Table Modal -->
+<div *ngIf="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold">{{ editingTable ? 'Editar' : 'Nueva' }} Mesa</h2>
+        <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <form [formGroup]="tableForm" (ngSubmit)="saveTable()">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Número de Mesa *</label>
+            <input type="text" formControlName="number" class="input-field" placeholder="Ej: 1, A1, VIP-1" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Capacidad *</label>
+            <input type="number" formControlName="capacity" min="1" class="input-field" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Ubicación</label>
+            <input type="text" formControlName="location" class="input-field" placeholder="Ej: Terraza, Interior, Salón VIP" />
+          </div>
+        </div>
+        
+        <div class="mt-6 flex justify-end space-x-3">
+          <button type="button" (click)="closeModal()" class="btn-secondary">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="tableForm.invalid" class="btn-primary disabled:opacity-50">
+            Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,237 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800">Inventario</h1>
+      <p class="text-gray-600 mt-1">Gestión de productos y categorías</p>
+    </div>
+    <div class="flex space-x-3">
+      <button (click)="openCategoryModal()" class="btn-secondary">
+        + Nueva Categoría
+      </button>
+      <button (click)="openProductModal()" class="btn-primary">
+        + Nuevo Producto
+      </button>
+    </div>
+  </div>
+  
+  <!-- Filters -->
+  <div class="card">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filterProducts()"
+          placeholder="Buscar por nombre..."
+          class="input-field"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+        <select
+          [(ngModel)]="selectedCategory"
+          (ngModelChange)="filterProducts()"
+          class="input-field"
+        >
+          <option value="">Todas las categorías</option>
+          <option *ngFor="let category of categories" [value]="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex items-center justify-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+  </div>
+  
+  <!-- Products Table -->
+  <div *ngIf="!loading" class="card">
+    <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Unidad</th>
+            <th>P. Compra</th>
+            <th>P. Venta</th>
+            <th>Stock</th>
+            <th>Stock Mín.</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let product of filteredProducts" [class.bg-red-50]="isLowStock(product)">
+            <td>
+              <div>
+                <p class="font-medium">{{ product.name }}</p>
+                <p class="text-xs text-gray-500">{{ product.description }}</p>
+              </div>
+            </td>
+            <td>{{ getCategoryName(product.category_id) }}</td>
+            <td>
+              <span class="badge badge-info">{{ unitTypeLabels[product.unit_type] }}</span>
+            </td>
+            <td class="font-medium">${{ product.purchase_price.toFixed(2) }}</td>
+            <td class="font-medium text-green-600">${{ product.sale_price.toFixed(2) }}</td>
+            <td>
+              <span [class.text-red-600]="isLowStock(product)" class="font-medium">
+                {{ product.stock }}
+              </span>
+            </td>
+            <td>{{ product.min_stock }}</td>
+            <td>
+              <div class="flex space-x-2">
+                <button
+                  (click)="openProductModal(product)"
+                  class="text-blue-600 hover:text-blue-800"
+                  title="Editar"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                </button>
+                <button
+                  (click)="deleteProduct(product)"
+                  class="text-red-600 hover:text-red-800"
+                  title="Eliminar"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <div *ngIf="filteredProducts.length === 0" class="text-center py-12 text-gray-500">
+        No se encontraron productos
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Product Modal -->
+<div *ngIf="showProductModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold">{{ editingProduct ? 'Editar' : 'Nuevo' }} Producto</h2>
+        <button (click)="closeProductModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <form [formGroup]="productForm" (ngSubmit)="saveProduct()">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
+            <input type="text" formControlName="name" class="input-field" />
+          </div>
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+            <textarea formControlName="description" rows="2" class="input-field"></textarea>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Categoría *</label>
+            <select formControlName="category_id" class="input-field">
+              <option value="">Selecciona una categoría</option>
+              <option *ngFor="let category of categories" [value]="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Unidad de Medida *</label>
+            <select formControlName="unit_type" class="input-field">
+              <option *ngFor="let unitType of unitTypes" [value]="unitType">
+                {{ unitTypeLabels[unitType] }}
+              </option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Precio de Compra *</label>
+            <input type="number" formControlName="purchase_price" step="0.01" class="input-field" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Precio de Venta *</label>
+            <input type="number" formControlName="sale_price" step="0.01" class="input-field" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Stock Actual *</label>
+            <input type="number" formControlName="stock" step="0.01" class="input-field" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Stock Mínimo *</label>
+            <input type="number" formControlName="min_stock" step="0.01" class="input-field" />
+          </div>
+        </div>
+        
+        <div class="mt-6 flex justify-end space-x-3">
+          <button type="button" (click)="closeProductModal()" class="btn-secondary">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="productForm.invalid" class="btn-primary disabled:opacity-50">
+            Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div *ngIf="showCategoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold">Nueva Categoría</h2>
+        <button (click)="closeCategoryModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
+            <input type="text" formControlName="name" class="input-field" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+            <textarea formControlName="description" rows="3" class="input-field"></textarea>
+          </div>
+        </div>
+        
+        <div class="mt-6 flex justify-end space-x-3">
+          <button type="button" (click)="closeCategoryModal()" class="btn-secondary">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="categoryForm.invalid" class="btn-primary disabled:opacity-50">
+            Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
