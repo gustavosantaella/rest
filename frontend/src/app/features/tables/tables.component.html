@@ -61,6 +61,16 @@
           {{ statusLabels[status] }}
         </option>
       </select>
+      
+      <!-- Botones para mesa ocupada -->
+      <div *ngIf="table.status === 'occupied'" class="mt-3 flex flex-col space-y-2">
+        <button (click)="viewOrder(table)" class="btn-info text-sm py-2">
+          👁️ Ver Orden
+        </button>
+        <button (click)="openAddItemsModal(table)" class="btn-success text-sm py-2">
+          ➕ Agregar Items
+        </button>
+      </div>
     </div>
   </div>
   
@@ -138,6 +148,198 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ver Orden -->
+<div *ngIf="showOrderModal && selectedOrder" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" (click)="closeOrderModal()">
+  <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="bg-primary-600 text-white p-6 rounded-t-lg">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-bold">Orden - Mesa {{ selectedTable?.number }}</h2>
+          <p class="text-sm opacity-90">{{ selectedTable?.location || 'Sin ubicación' }}</p>
+        </div>
+        <button (click)="closeOrderModal()" class="text-white hover:bg-primary-700 p-2 rounded-lg">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Body -->
+    <div class="p-6">
+      <!-- Info general -->
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div>
+          <p class="text-sm text-gray-500">Estado</p>
+          <p class="font-semibold capitalize">{{ selectedOrder.status }}</p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Estado de Pago</p>
+          <p class="font-semibold capitalize">{{ selectedOrder.payment_status }}</p>
+        </div>
+      </div>
+      
+      <!-- Items -->
+      <div class="mb-6">
+        <h3 class="text-lg font-bold mb-3">Items de la Orden</h3>
+        <div class="space-y-2">
+          <div *ngFor="let item of selectedOrder.items" class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+            <div class="flex-1">
+              <p class="font-medium">{{ getItemName(item) }}</p>
+              <p class="text-sm text-gray-500">
+                <span class="badge badge-info">{{ item.source_type === 'menu' ? 'Menú' : 'Inventario' }}</span>
+              </p>
+              <p *ngIf="item.notes" class="text-xs text-gray-500 mt-1">Nota: {{ item.notes }}</p>
+            </div>
+            <div class="text-right">
+              <p class="font-medium">{{ item.quantity }} x ${{ item.unit_price.toFixed(2) }}</p>
+              <p class="text-sm font-bold text-primary-600">${{ item.subtotal.toFixed(2) }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Totales -->
+      <div class="border-t pt-4">
+        <div class="space-y-2">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Subtotal:</span>
+            <span class="font-medium">${{ selectedOrder.subtotal.toFixed(2) }}</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Impuesto (16%):</span>
+            <span class="font-medium">${{ selectedOrder.tax.toFixed(2) }}</span>
+          </div>
+          <div *ngIf="selectedOrder.discount > 0" class="flex justify-between text-sm">
+            <span class="text-gray-600">Descuento:</span>
+            <span class="font-medium text-red-600">-${{ selectedOrder.discount.toFixed(2) }}</span>
+          </div>
+          <div class="flex justify-between text-lg font-bold border-t pt-2">
+            <span>Total:</span>
+            <span class="text-primary-600">${{ selectedOrder.total.toFixed(2) }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Pagos -->
+      <div *ngIf="selectedOrder.payments && selectedOrder.payments.length > 0" class="mt-6">
+        <h3 class="text-lg font-bold mb-3">Pagos Registrados</h3>
+        <div class="space-y-2">
+          <div *ngFor="let payment of selectedOrder.payments" class="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+            <div>
+              <p class="font-medium">{{ payment.payment_method_name || 'Método de pago' }}</p>
+              <p *ngIf="payment.reference" class="text-xs text-gray-500">Ref: {{ payment.reference }}</p>
+            </div>
+            <p class="font-bold text-green-600">${{ payment.amount.toFixed(2) }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end">
+      <button (click)="closeOrderModal()" class="btn-secondary">
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Agregar Items -->
+<div *ngIf="showAddItemsModal && selectedOrder" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" (click)="closeAddItemsModal()">
+  <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="bg-green-600 text-white p-6 rounded-t-lg">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-bold">Agregar Items - Mesa {{ selectedTable?.number }}</h2>
+          <p class="text-sm opacity-90">Orden #{{ selectedOrder.id }}</p>
+        </div>
+        <button (click)="closeAddItemsModal()" class="text-white hover:bg-green-700 p-2 rounded-lg">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Body -->
+    <div class="p-6">
+      <!-- Toggle entre Productos y Menú -->
+      <div class="mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold">Seleccionar Items</h3>
+          <button (click)="toggleSource()" class="btn-secondary text-sm">
+            {{ showMenuItems ? '📦 Cambiar a Inventario' : '🍔 Cambiar a Menú' }}
+          </button>
+        </div>
+        <p class="text-sm text-gray-600">
+          Seleccionando desde: <span class="font-bold">{{ showMenuItems ? 'Menú' : 'Inventario' }}</span>
+        </p>
+      </div>
+      
+      <!-- Form Items -->
+      <form [formGroup]="addItemsForm">
+        <div formArrayName="items" class="space-y-4">
+          <div *ngFor="let item of addItemsArray.controls; let i = index" [formGroupName]="i" class="border-2 border-gray-200 rounded-lg p-4">
+            <div class="flex items-start space-x-3">
+              <div class="flex-1 space-y-3">
+                <!-- Select Item -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ showMenuItems ? 'Platillo' : 'Producto' }}
+                  </label>
+                  <select formControlName="product_id" class="input-field">
+                    <option value="">Seleccionar...</option>
+                    <option *ngFor="let availableItem of availableItems" [value]="availableItem.id">
+                      {{ availableItem.name }} - ${{ getItemPrice(availableItem).toFixed(2) }}
+                    </option>
+                  </select>
+                </div>
+                
+                <!-- Quantity -->
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+                    <input type="number" formControlName="quantity" min="0.01" step="0.01" class="input-field">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+                    <input type="text" formControlName="notes" placeholder="Opcional" class="input-field">
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Remove Button -->
+              <button *ngIf="addItemsArray.length > 1" type="button" (click)="removeItem(i)" class="mt-6 p-2 text-red-600 hover:bg-red-50 rounded">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Add More Button -->
+        <button type="button" (click)="addNewItem()" class="mt-4 btn-secondary w-full">
+          + Agregar Otro Item
+        </button>
+      </form>
+    </div>
+    
+    <!-- Footer -->
+    <div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+      <button (click)="closeAddItemsModal()" class="btn-secondary">
+        Cancelar
+      </button>
+      <button (click)="saveAddedItems()" [disabled]="addItemsForm.invalid || addItemsArray.length === 0" class="btn-success disabled:opacity-50">
+        Guardar Items
+      </button>
     </div>
   </div>
 </div>

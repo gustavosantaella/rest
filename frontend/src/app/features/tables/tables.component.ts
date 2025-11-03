@@ -1,10 +1,17 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TableService } from '../../core/services/table.service';
+import { OrderService } from '../../core/services/order.service';
+import { ProductService } from '../../core/services/product.service';
+import { MenuService } from '../../core/services/menu.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { AuthPermissionsService } from '../../core/services/auth-permissions.service';
 import { Table, TableStatus, TableCreate } from '../../core/models/table.model';
+import { Order, OrderItem, UpdateOrderItems } from '../../core/models/order.model';
+import { Product } from '../../core/models/product.model';
+import { MenuItem } from '../../core/models/menu.model';
 import { TooltipDirective } from '../../shared/directives/tooltip.directive';
 
 @Component({
@@ -16,6 +23,10 @@ import { TooltipDirective } from '../../shared/directives/tooltip.directive';
 })
 export class TablesComponent implements OnInit, OnDestroy {
   private tableService = inject(TableService);
+  private orderService = inject(OrderService);
+  private productService = inject(ProductService);
+  private menuService = inject(MenuService);
+  private notificationService = inject(NotificationService);
   private authPermissionsService = inject(AuthPermissionsService);
   private fb = inject(FormBuilder);
   
@@ -25,6 +36,18 @@ export class TablesComponent implements OnInit, OnDestroy {
   tableForm!: FormGroup;
   loading = true;
   private refreshInterval: any;
+  
+  // Vista de orden
+  showOrderModal = false;
+  selectedOrder: Order | null = null;
+  selectedTable: Table | null = null;
+  
+  // Agregar items
+  showAddItemsModal = false;
+  addItemsForm!: FormGroup;
+  products: Product[] = [];
+  menuItems: MenuItem[] = [];
+  showMenuItems = false; // Para cambiar entre productos y menú
   
   tableStatuses = Object.values(TableStatus);
   statusLabels: Record<TableStatus, string> = {
@@ -36,14 +59,17 @@ export class TablesComponent implements OnInit, OnDestroy {
   
   constructor() {
     this.initForm();
+    this.initAddItemsForm();
   }
   
   ngOnInit(): void {
     this.loadTables();
+    this.loadProducts();
+    this.loadMenuItems();
     
     // Actualizar cada 10 segundos para reflejar cambios de órdenes
     this.refreshInterval = setInterval(() => {
-      if (!this.showModal) { // Solo refrescar si no hay modal abierto
+      if (!this.showModal && !this.showOrderModal && !this.showAddItemsModal) {
         this.loadTables();
       }
     }, 10000);
@@ -61,6 +87,16 @@ export class TablesComponent implements OnInit, OnDestroy {
       capacity: [2, [Validators.required, Validators.min(1)]],
       location: ['']
     });
+  }
+  
+  initAddItemsForm(): void {
+    this.addItemsForm = this.fb.group({
+      items: this.fb.array([])
+    });
+  }
+  
+  get addItemsArray(): FormArray {
+    return this.addItemsForm.get('items') as FormArray;
   }
   
   loadTables(): void {
@@ -162,6 +198,188 @@ export class TablesComponent implements OnInit, OnDestroy {
   
   canManageTables(): boolean {
     return this.authPermissionsService.hasPermission('tables.manage');
+  }
+  
+  // Métodos para ver orden
+  viewOrder(table: Table): void {
+    if (table.status !== TableStatus.OCCUPIED) {
+      this.notificationService.warning('Esta mesa no tiene orden activa');
+      return;
+    }
+    
+    this.selectedTable = table;
+    this.orderService.getOrderByTable(table.id).subscribe({
+      next: (order) => {
+        this.selectedOrder = order;
+        this.showOrderModal = true;
+      },
+      error: (err) => {
+        this.notificationService.error('Error: ' + (err.error?.detail || 'No se pudo cargar la orden'));
+      }
+    });
+  }
+  
+  closeOrderModal(): void {
+    this.showOrderModal = false;
+    this.selectedOrder = null;
+    this.selectedTable = null;
+  }
+  
+  getItemName(item: OrderItem): string {
+    if (item.source_type === 'menu' && item.menu_item_id) {
+      const menuItem = this.menuItems.find(m => m.id === item.menu_item_id);
+      return menuItem ? menuItem.name : `Menu Item #${item.menu_item_id}`;
+    } else if (item.product_id) {
+      const product = this.products.find(p => p.id === item.product_id);
+      return product ? product.name : `Producto #${item.product_id}`;
+    }
+    return 'Item desconocido';
+  }
+  
+  // Métodos para agregar items
+  openAddItemsModal(table: Table): void {
+    if (table.status !== TableStatus.OCCUPIED) {
+      this.notificationService.warning('Esta mesa no tiene orden activa');
+      return;
+    }
+    
+    this.selectedTable = table;
+    this.orderService.getOrderByTable(table.id).subscribe({
+      next: (order) => {
+        this.selectedOrder = order;
+        this.addItemsArray.clear();
+        this.addNewItem();
+        this.showAddItemsModal = true;
+      },
+      error: (err) => {
+        this.notificationService.error('Error: ' + (err.error?.detail || 'No se pudo cargar la orden'));
+      }
+    });
+  }
+  
+  closeAddItemsModal(): void {
+    this.showAddItemsModal = false;
+    this.selectedOrder = null;
+    this.selectedTable = null;
+    this.addItemsArray.clear();
+  }
+  
+  addNewItem(): void {
+    const item = this.fb.group({
+      product_id: ['', Validators.required],
+      quantity: [1, [Validators.required, Validators.min(0.01)]],
+      notes: [''],
+      source_type: [this.showMenuItems ? 'menu' : 'product']
+    });
+    this.addItemsArray.push(item);
+  }
+  
+  removeItem(index: number): void {
+    this.addItemsArray.removeAt(index);
+  }
+  
+  toggleSource(): void {
+    this.showMenuItems = !this.showMenuItems;
+    // Actualizar source_type de todos los items
+    this.addItemsArray.controls.forEach(control => {
+      control.patchValue({
+        source_type: this.showMenuItems ? 'menu' : 'product',
+        product_id: '' // Limpiar selección
+      });
+    });
+  }
+  
+  get availableItems(): (MenuItem | Product)[] {
+    return this.showMenuItems 
+      ? this.menuItems.filter(m => m.is_available) 
+      : this.products;
+  }
+  
+  getItemPrice(item: any): number {
+    // Si tiene la propiedad 'price', es un MenuItem
+    if (item.price !== undefined) {
+      return item.price;
+    }
+    // Si tiene 'sale_price', es un Product
+    return item.sale_price || 0;
+  }
+  
+  saveAddedItems(): void {
+    if (!this.selectedOrder || this.addItemsForm.invalid || this.addItemsArray.length === 0) return;
+    
+    // Obtener items existentes
+    const existingItems = this.selectedOrder.items.map(item => {
+      if (item.source_type === 'menu') {
+        return {
+          menu_item_id: item.menu_item_id,
+          quantity: item.quantity,
+          notes: item.notes || '',
+          source_type: 'menu'
+        };
+      } else {
+        return {
+          product_id: item.product_id,
+          quantity: item.quantity,
+          notes: item.notes || '',
+          source_type: 'product'
+        };
+      }
+    });
+    
+    // Transformar nuevos items
+    const newItems = this.addItemsForm.value.items.map((item: any) => {
+      if (item.source_type === 'menu') {
+        return {
+          menu_item_id: Number(item.product_id),
+          quantity: item.quantity,
+          notes: item.notes || '',
+          source_type: 'menu'
+        };
+      } else {
+        return {
+          product_id: Number(item.product_id),
+          quantity: item.quantity,
+          notes: item.notes || '',
+          source_type: 'product'
+        };
+      }
+    });
+    
+    // Combinar items existentes con nuevos
+    const allItems = [...existingItems, ...newItems];
+    
+    const itemsData: UpdateOrderItems = {
+      items: allItems
+    };
+    
+    this.orderService.updateOrderItems(this.selectedOrder.id, itemsData).subscribe({
+      next: () => {
+        this.notificationService.success('Items agregados exitosamente');
+        this.closeAddItemsModal();
+        this.loadTables();
+      },
+      error: (err) => {
+        this.notificationService.error('Error: ' + (err.error?.detail || 'Error al agregar items'));
+      }
+    });
+  }
+  
+  loadProducts(): void {
+    this.productService.getProducts().subscribe({
+      next: (products) => {
+        this.products = products;
+      },
+      error: () => {}
+    });
+  }
+  
+  loadMenuItems(): void {
+    this.menuService.getMenuItems().subscribe({
+      next: (items) => {
+        this.menuItems = items;
+      },
+      error: () => {}
+    });
   }
 }
 

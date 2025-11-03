@@ -322,9 +322,21 @@ export class OrdersComponent implements OnInit {
     return classes[status];
   }
   
-  getProductName(productId: number): string {
+  getProductName(productId: number | undefined): string {
+    if (!productId) return 'Producto desconocido';
     const product = this.products.find(p => p.id === productId);
     return product?.name || 'Producto desconocido';
+  }
+  
+  getItemName(item: any): string {
+    if (item.source_type === 'menu' && item.menu_item_id) {
+      const menuItem = this.menuItems.find(m => m.id === item.menu_item_id);
+      return menuItem ? menuItem.name : `Menu Item #${item.menu_item_id}`;
+    } else if (item.product_id) {
+      const product = this.products.find(p => p.id === item.product_id);
+      return product ? product.name : `Producto #${item.product_id}`;
+    }
+    return 'Item desconocido';
   }
   
   getTableNumber(tableId?: number): string {

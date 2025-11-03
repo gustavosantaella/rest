@@ -250,6 +250,42 @@ def read_orders(
     return orders
 
 
+@router.get("/table/{table_id}", response_model=OrderResponse)
+def get_order_by_table(
+    table_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Obtener la orden activa de una mesa específica"""
+    # Buscar orden activa (no completada ni cancelada) de la mesa
+    order = (
+        db.query(Order)
+        .filter(
+            Order.table_id == table_id,
+            Order.status.in_([OrderStatus.PENDING.value, OrderStatus.PREPARING.value]),
+        )
+        .first()
+    )
+
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No hay orden activa para esta mesa",
+        )
+
+    # Agregar nombres de métodos de pago
+    for payment in order.payments:
+        payment_method = (
+            db.query(PaymentMethod)
+            .filter(PaymentMethod.id == payment.payment_method_id)
+            .first()
+        )
+        if payment_method:
+            payment.payment_method_name = payment_method.name
+
+    return order
+
+
 @router.get("/{order_id}", response_model=OrderResponse)
 def read_order(
     order_id: int,

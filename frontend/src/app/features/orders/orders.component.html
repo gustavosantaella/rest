@@ -211,7 +211,7 @@
         <p class="text-sm font-medium text-gray-700 mb-2">Items ({{ order.items.length }})</p>
         <div class="space-y-1">
           <div *ngFor="let item of order.items.slice(0, 3)" class="text-sm text-gray-600 flex justify-between">
-            <span>{{ item.quantity }}x {{ getProductName(item.product_id) }}</span>
+            <span>{{ item.quantity }}x {{ getItemName(item) }}</span>
             <span>${{ item.subtotal.toFixed(2) }}</span>
           </div>
           <p *ngIf="order.items.length > 3" class="text-xs text-gray-500 italic">
@@ -864,7 +864,10 @@
         <div class="space-y-2">
           <div *ngFor="let item of selectedOrder.items" class="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
             <div class="flex-1">
-              <p class="font-medium">{{ getProductName(item.product_id) }}</p>
+              <p class="font-medium">{{ getItemName(item) }}</p>
+              <p class="text-sm text-gray-600">
+                <span class="badge badge-info">{{ item.source_type === 'menu' ? 'Menú' : 'Inventario' }}</span>
+              </p>
               <p class="text-sm text-gray-600">Cantidad: {{ item.quantity }}</p>
               <p *ngIf="item.notes" class="text-sm text-gray-500 italic">{{ item.notes }}</p>
             </div>
@@ -957,7 +960,7 @@
         <!-- Items -->
         <div class="space-y-2 mb-4">
           <div *ngFor="let item of orderToPay.items" class="flex justify-between text-sm">
-            <span>{{ item.quantity }}x {{ getProductName(item.product_id) }}</span>
+            <span>{{ item.quantity }}x {{ getItemName(item) }}</span>
             <span class="font-medium">${{ item.subtotal.toFixed(2) }}</span>
           </div>
         </div>
