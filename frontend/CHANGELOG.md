@@ -2,6 +2,51 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [1.3.0] - 2024-11-03
+
+### ⚙️ Módulo de Configuración del Negocio (NUEVO)
+- **Información Legal y Administrativa**
+  - Nombre comercial del negocio
+  - Razón social (nombre legal)
+  - RIF/NIT/Tax ID (identificación fiscal)
+  - Datos de contacto (teléfono, email, dirección)
+  - Configuración fiscal (tasa de impuesto, moneda)
+  - Logo del negocio (URL)
+  
+- **Gestión de Socios**
+  - Agregar socios del negocio (solo usuarios Admin)
+  - Porcentaje de participación por socio
+  - Validación automática (debe sumar 100%)
+  - Monto de inversión de cada socio
+  - Estado activo/inactivo
+  - Fecha de ingreso
+  - Notas adicionales
+  
+- **Características**:
+  - Solo Admin puede acceder
+  - Validación en tiempo real de porcentajes
+  - Barra de progreso visual por socio
+  - Cálculo automático de participación total
+  - Alerta si no suma 100%
+  - Muestra % disponible al agregar socio
+  
+- **Monedas Soportadas**:
+  - USD (Dólar)
+  - EUR (Euro)
+  - VES (Bolívar Venezolano)
+  - COP (Peso Colombiano)
+  - MXN (Peso Mexicano)
+  - ARS (Peso Argentino)
+
+### 👨‍🍳 Rol Chef Agregado
+- Nuevo rol: **Chef** (Cocinero)
+- Permisos: Ver y actualizar órdenes de cocina
+- Badge color naranja 🟠
+- Manager puede gestionar usuarios Chef
+- Total de roles: **5**
+
+---
+
 ## [1.2.0] - 2024-11-03
 
 ### 🔄 Sistema de Loading Global (NUEVO)

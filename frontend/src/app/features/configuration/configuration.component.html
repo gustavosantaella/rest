@@ -1,0 +1,350 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800">Configuración del Negocio</h1>
+      <p class="text-gray-600 mt-1">Información legal y gestión de socios</p>
+    </div>
+  </div>
+  
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex items-center justify-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+  </div>
+  
+  <!-- Configuration Form -->
+  <div *ngIf="!loading" class="card">
+    <h2 class="text-xl font-bold mb-6">Información del Negocio</h2>
+    
+    <form [formGroup]="configForm" (ngSubmit)="saveConfiguration()">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Nombre Comercial -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Nombre Comercial *</label>
+          <input 
+            type="text" 
+            formControlName="business_name" 
+            class="input-field"
+            placeholder="Ej: Restaurante El Buen Sabor"
+            appTooltip="Nombre comercial de tu restaurante/local como lo conocen los clientes."
+            tooltipPosition="top"
+          />
+        </div>
+        
+        <!-- Razón Social -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Razón Social</label>
+          <input 
+            type="text" 
+            formControlName="legal_name" 
+            class="input-field"
+            placeholder="Ej: Restaurante El Buen Sabor C.A."
+            appTooltip="Nombre legal registrado de la empresa para documentos oficiales y facturas."
+            tooltipPosition="top"
+          />
+        </div>
+        
+        <!-- RIF -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">RIF / Identificación Fiscal</label>
+          <input 
+            type="text" 
+            formControlName="rif" 
+            class="input-field"
+            placeholder="Ej: J-12345678-9"
+            appTooltip="Número de identificación fiscal (RIF, NIT, Tax ID) para facturación y documentos legales."
+            tooltipPosition="top"
+          />
+        </div>
+        
+        <!-- Teléfono -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+          <input 
+            type="tel" 
+            formControlName="phone" 
+            class="input-field"
+            placeholder="Ej: +58 412-1234567"
+            appTooltip="Número de teléfono principal del negocio."
+            tooltipPosition="top"
+          />
+        </div>
+        
+        <!-- Email -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+          <input 
+            type="email" 
+            formControlName="email" 
+            class="input-field"
+            placeholder="info@restaurant.com"
+            appTooltip="Correo electrónico oficial del negocio para comunicaciones."
+            tooltipPosition="top"
+          />
+        </div>
+        
+        <!-- Moneda -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Moneda *</label>
+          <select 
+            formControlName="currency" 
+            class="input-field"
+            appTooltip="Moneda principal en la que operas. Afecta cómo se muestran los precios."
+            tooltipPosition="top"
+          >
+            <option value="USD">USD - Dólar Estadounidense</option>
+            <option value="EUR">EUR - Euro</option>
+            <option value="VES">VES - Bolívar Venezolano</option>
+            <option value="COP">COP - Peso Colombiano</option>
+            <option value="MXN">MXN - Peso Mexicano</option>
+            <option value="ARS">ARS - Peso Argentino</option>
+          </select>
+        </div>
+        
+        <!-- Tasa de impuesto -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Tasa de Impuesto (%) *</label>
+          <input 
+            type="number" 
+            formControlName="tax_rate" 
+            step="0.01" 
+            class="input-field"
+            appTooltip="Porcentaje de impuesto (IVA) que se aplica a las ventas. Ejemplo: 16 para IVA del 16%."
+            tooltipPosition="top"
+          />
+        </div>
+        
+        <!-- Dirección -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Dirección</label>
+          <textarea 
+            formControlName="address" 
+            rows="2" 
+            class="input-field"
+            placeholder="Dirección completa del establecimiento"
+            appTooltip="Dirección física completa del negocio para facturas y entregas."
+            tooltipPosition="top"
+          ></textarea>
+        </div>
+        
+        <!-- Logo URL -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2">URL del Logo</label>
+          <input 
+            type="url" 
+            formControlName="logo_url" 
+            class="input-field"
+            placeholder="https://..."
+            appTooltip="URL de la imagen del logo de tu negocio. Se mostrará en reportes y facturas."
+            tooltipPosition="top"
+          />
+        </div>
+      </div>
+      
+      <div class="mt-6 flex justify-end">
+        <button type="submit" [disabled]="configForm.invalid" class="btn-primary disabled:opacity-50">
+          {{ configExists ? 'Actualizar Configuración' : 'Guardar Configuración' }}
+        </button>
+      </div>
+    </form>
+  </div>
+  
+  <!-- Partners Section -->
+  <div *ngIf="configExists && !loading" class="card">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-xl font-bold">Socios del Negocio</h2>
+        <p class="text-sm text-gray-600 mt-1">
+          Participación total: <span class="font-bold" [class.text-green-600]="getTotalParticipation() === 100" [class.text-red-600]="getTotalParticipation() !== 100">
+            {{ getTotalParticipation().toFixed(2) }}%
+          </span>
+          <span *ngIf="getTotalParticipation() !== 100" class="text-red-600 ml-2">
+            (Debe sumar 100%)
+          </span>
+        </p>
+      </div>
+      <button (click)="openPartnerModal()" class="btn-primary">
+        + Agregar Socio
+      </button>
+    </div>
+    
+    <!-- Partners Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div *ngFor="let partner of partners" class="border-2 rounded-lg p-4 hover:shadow-lg transition-shadow" [class.border-gray-200]="partner.is_active" [class.border-red-200]="!partner.is_active" [class.bg-gray-50]="!partner.is_active">
+        <!-- Partner Header -->
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex-1">
+            <h3 class="font-bold text-lg">{{ partner.user_name }}</h3>
+            <p class="text-sm text-gray-600">{{ partner.user_email }}</p>
+          </div>
+          <span [class]="partner.is_active ? 'badge-success' : 'badge-danger'" class="badge text-xs">
+            {{ partner.is_active ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+        
+        <!-- Participation -->
+        <div class="mb-3">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-sm text-gray-600">Participación</span>
+            <span class="font-bold text-2xl text-primary-600">{{ partner.participation_percentage }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              class="bg-primary-600 h-2 rounded-full transition-all"
+              [style.width.%]="partner.participation_percentage"
+            ></div>
+          </div>
+        </div>
+        
+        <!-- Investment -->
+        <div class="mb-3">
+          <span class="text-sm text-gray-600">Inversión:</span>
+          <span class="font-medium ml-2">${{ partner.investment_amount.toFixed(2) }}</span>
+        </div>
+        
+        <!-- Join Date -->
+        <div class="mb-3">
+          <span class="text-sm text-gray-600">Fecha de ingreso:</span>
+          <span class="text-sm ml-2">{{ partner.join_date | date:'mediumDate' }}</span>
+        </div>
+        
+        <!-- Notes -->
+        <div *ngIf="partner.notes" class="mb-3">
+          <p class="text-xs text-gray-500 italic">"{{ partner.notes }}"</p>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex space-x-2 pt-3 border-t">
+          <button
+            (click)="openPartnerModal(partner)"
+            class="flex-1 btn-secondary text-sm py-2"
+          >
+            Editar
+          </button>
+          <button
+            (click)="deletePartner(partner)"
+            class="btn-danger text-sm py-2 px-3"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Empty State -->
+    <div *ngIf="partners.length === 0" class="text-center py-12">
+      <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+      </svg>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No hay socios registrados</h3>
+      <p class="text-gray-500 mb-4">Agrega los socios del negocio y su porcentaje de participación</p>
+      <button (click)="openPartnerModal()" class="btn-primary">
+        Agregar Primer Socio
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Partner Modal -->
+<div *ngIf="showPartnerModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold">{{ editingPartner ? 'Editar' : 'Agregar' }} Socio</h2>
+        <button (click)="closePartnerModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <form [formGroup]="partnerForm" (ngSubmit)="savePartner()">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Usuario Administrador *</label>
+            <select 
+              formControlName="user_id" 
+              class="input-field"
+              [disabled]="editingPartner !== null"
+              appTooltip="Selecciona un usuario con rol Administrador para agregarlo como socio del negocio."
+              tooltipPosition="top"
+            >
+              <option value="">Selecciona un administrador</option>
+              <option *ngFor="let user of getAvailableUsers()" [value]="user.id">
+                {{ user.full_name }} ({{ user.username }})
+              </option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Porcentaje de Participación *</label>
+            <div class="flex items-center space-x-2">
+              <input 
+                type="number" 
+                formControlName="participation_percentage" 
+                step="0.01" 
+                min="0" 
+                max="100" 
+                class="input-field"
+                appTooltip="Porcentaje de participación del socio en el negocio. El total de todos los socios debe sumar 100%."
+                tooltipPosition="top"
+              />
+              <span class="text-lg font-bold text-gray-600">%</span>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">
+              Disponible: {{ (100 - getTotalParticipation() + (editingPartner?.participation_percentage || 0)).toFixed(2) }}%
+            </p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Monto de Inversión</label>
+            <input 
+              type="number" 
+              formControlName="investment_amount" 
+              step="0.01" 
+              min="0" 
+              class="input-field"
+              appTooltip="Monto de dinero que invirtió este socio en el negocio (opcional, para referencia)."
+              tooltipPosition="top"
+            />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Notas</label>
+            <textarea 
+              formControlName="notes" 
+              rows="3" 
+              class="input-field"
+              placeholder="Notas adicionales sobre este socio..."
+              appTooltip="Información adicional o notas sobre este socio y su participación."
+              tooltipPosition="top"
+            ></textarea>
+          </div>
+          
+          <div>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                formControlName="is_active"
+                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span class="text-sm font-medium text-gray-700">Socio activo</span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="mt-6 flex justify-end space-x-3">
+          <button type="button" (click)="closePartnerModal()" class="btn-secondary">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="partnerForm.invalid" class="btn-primary disabled:opacity-50">
+            {{ editingPartner ? 'Actualizar' : 'Agregar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

@@ -3,12 +3,14 @@ from .product import ProductCreate, ProductUpdate, ProductResponse, CategoryCrea
 from .table import TableCreate, TableUpdate, TableResponse
 from .order import OrderCreate, OrderUpdate, OrderResponse, OrderItemCreate
 from .menu import MenuItemCreate, MenuItemUpdate, MenuItemResponse, MenuCategoryCreate, MenuCategoryUpdate, MenuCategoryResponse
+from .configuration import BusinessConfigurationCreate, BusinessConfigurationUpdate, BusinessConfigurationResponse, PartnerCreate, PartnerUpdate, PartnerResponse
 
 __all__ = [
     "UserCreate", "UserUpdate", "UserResponse", "Token", "TokenData",
     "ProductCreate", "ProductUpdate", "ProductResponse", "CategoryCreate", "CategoryResponse",
     "TableCreate", "TableUpdate", "TableResponse",
     "OrderCreate", "OrderUpdate", "OrderResponse", "OrderItemCreate",
-    "MenuItemCreate", "MenuItemUpdate", "MenuItemResponse", "MenuCategoryCreate", "MenuCategoryUpdate", "MenuCategoryResponse"
+    "MenuItemCreate", "MenuItemUpdate", "MenuItemResponse", "MenuCategoryCreate", "MenuCategoryUpdate", "MenuCategoryResponse",
+    "BusinessConfigurationCreate", "BusinessConfigurationUpdate", "BusinessConfigurationResponse", "PartnerCreate", "PartnerUpdate", "PartnerResponse"
 ]
 

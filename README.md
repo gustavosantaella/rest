@@ -9,10 +9,11 @@ Sistema completo de gestión para restaurantes, kioskos y locales comerciales. D
 - ✅ Autenticación JWT con roles
 - ✅ Base de datos PostgreSQL
 - ✅ Gestión de inventario con múltiples unidades de medida
-- ✅ **Menú del Restaurante** - Gestión de platillos y categorías (¡NUEVO!)
+- ✅ **Menú del Restaurante** - Gestión de platillos y categorías
 - ✅ Sistema de órdenes con cálculo automático
 - ✅ Gestión de mesas y estados
-- ✅ Control de usuarios y permisos
+- ✅ Control de usuarios y permisos (5 roles)
+- ✅ **Configuración y Socios** - Información legal y gestión de socios (¡NUEVO!)
 
 ### Frontend (Angular + Tailwind)
 - ✅ Interfaz moderna y responsive
@@ -44,11 +45,11 @@ Sistema completo de gestión para restaurantes, kioskos y locales comerciales. D
 
 ## 🔐 Roles y Permisos
 
-- **ADMIN**: Acceso total al sistema
+- **ADMIN**: Acceso total al sistema + Configuración del negocio
 - **MANAGER**: Gestión de inventario, mesas y personal
 - **WAITER**: Gestión de órdenes y mesas
 - **CASHIER**: Procesamiento de pagos
-- **CHEF**: Visualización de órdenes de cocina (¡NUEVO!)
+- **CHEF**: Visualización de órdenes de cocina
 
 ## 🚀 Inicio Rápido
 
@@ -160,8 +161,11 @@ Al iniciar el backend por primera vez, se crea automáticamente un usuario admin
 
 1. **Configuración Inicial:**
    - Iniciar sesión con usuario admin
+   - **Configurar negocio y socios** (Configuración) 🆕
    - Crear categorías de productos
    - Agregar productos al inventario
+   - Crear categorías del menú
+   - Crear platillos del menú
    - Configurar mesas del local
    - Crear usuarios del personal
 
@@ -198,7 +202,9 @@ Al iniciar el backend por primera vez, se crea automáticamente un usuario admin
 
 - [Backend README](./backend/README.md) - Documentación detallada del backend
 - [Frontend README](./frontend/README.md) - Documentación detallada del frontend
-- [Menú Documentation](./MENU_DOCUMENTATION.md) - Guía completa del módulo de menú 🆕
+- [Menú Documentation](./MENU_DOCUMENTATION.md) - Guía completa del módulo de menú
+- [Configuration Module](./CONFIGURATION_MODULE.md) - Módulo de configuración y socios 🆕
+- [Roles Documentation](./ROLES_DOCUMENTATION.md) - Sistema de 5 roles
 - [API Docs](http://localhost:8000/docs) - Documentación interactiva de la API
 
 ## 🔄 API Endpoints
@@ -234,6 +240,15 @@ Al iniciar el backend por primera vez, se crea automáticamente un usuario admin
 - `GET /api/users/` - Listar usuarios (admin)
 - `GET /api/users/me` - Usuario actual
 - `PUT /api/users/{id}` - Actualizar usuario
+
+### Configuración 🆕
+- `GET /api/configuration` - Obtener configuración del negocio
+- `POST /api/configuration` - Crear configuración
+- `PUT /api/configuration` - Actualizar configuración
+- `GET /api/configuration/partners` - Listar socios
+- `POST /api/configuration/partners` - Agregar socio
+- `PUT /api/configuration/partners/{id}` - Actualizar socio
+- `DELETE /api/configuration/partners/{id}` - Eliminar socio
 
 ## 🎨 Capturas de Pantalla
 

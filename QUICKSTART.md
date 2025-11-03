@@ -62,7 +62,19 @@ npm start
 
 ## 📦 Primeros Pasos Después del Login
 
-### 1. Crear Categorías de Productos
+### 1. Configurar tu Negocio (¡NUEVO!)
+- Ve a **Configuración** (icono de engranaje) ⚙️
+- Llena la información:
+  - Nombre comercial
+  - RIF (identificación fiscal)
+  - Teléfono, email, dirección
+  - Tasa de impuesto (IVA)
+- Agregar socios (opcional):
+  - Selecciona usuarios admin
+  - Define % de participación
+  - Debe sumar 100%
+
+### 2. Crear Categorías de Productos
 - Ve a **Inventario**
 - Click en "Nueva Categoría"
 - Ejemplos: Bebidas, Comidas, Postres, etc.
@@ -128,6 +140,7 @@ ng serve --port 4201
 - 🍽️ **Mesas:** http://localhost:4200/tables
 - 🧾 **Órdenes:** http://localhost:4200/orders
 - 👥 **Usuarios:** http://localhost:4200/users
+- ⚙️ **Configuración:** http://localhost:4200/configuration
 - 📚 **API Docs:** http://localhost:8000/docs
 
 ## 💡 Tips Útiles

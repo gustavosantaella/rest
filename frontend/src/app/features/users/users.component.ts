@@ -20,6 +20,7 @@ export class UsersComponent implements OnInit {
   
   users: User[] = [];
   currentUser: User | null = null;
+  currentUser$ = this.authService.currentUser$; // Observable para template
   showModal = false;
   editingUser: User | null = null;
   userForm!: FormGroup;
