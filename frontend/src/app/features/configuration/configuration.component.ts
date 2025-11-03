@@ -54,6 +54,7 @@ export class ConfigurationComponent implements OnInit {
   initForms(): void {
     this.configForm = this.fb.group({
       business_name: ['', Validators.required],
+      slug: [''],
       legal_name: [''],
       rif: [''],
       phone: [''],

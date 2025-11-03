@@ -11,6 +11,7 @@ class BusinessConfiguration(Base):
     
     # Información del negocio
     business_name = Column(String, nullable=False)  # Nombre del local
+    slug = Column(String, unique=True, index=True)  # Slug único para URL pública
     legal_name = Column(String)  # Razón social
     rif = Column(String, unique=True, index=True)  # RIF o identificación fiscal
     

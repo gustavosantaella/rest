@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from .database import engine, Base, SessionLocal
-from .routers import auth, users, products, tables, orders, menu, configuration, profile, payment_methods, upload
+from .routers import auth, users, products, tables, orders, menu, configuration, profile, payment_methods, upload, public
 from .models.user import User, UserRole
 from .utils.security import get_password_hash
 import os
@@ -64,6 +64,7 @@ app.include_router(configuration.router, prefix="/api")
 app.include_router(profile.router, prefix="/api")
 app.include_router(payment_methods.router, prefix="/api")
 app.include_router(upload.router, prefix="/api")
+app.include_router(public.router, prefix="/api")
 
 # Configurar carpeta de archivos estáticos para imágenes
 UPLOAD_DIR = "uploads"

@@ -71,3 +71,11 @@ class MenuItemResponse(MenuItemBase):
     class Config:
         from_attributes = True
 
+
+class MenuItemPublicResponse(MenuItemBase):
+    """Schema simplificado para catálogo público (sin ingredientes)"""
+    id: int
+    
+    class Config:
+        from_attributes = True
+

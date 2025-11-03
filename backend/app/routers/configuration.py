@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+import re
 from ..database import get_db
 from ..models.configuration import BusinessConfiguration, Partner
 from ..models.user import User, UserRole
@@ -11,6 +12,32 @@ from ..schemas.configuration import (
 from ..utils.dependencies import get_current_active_admin
 
 router = APIRouter(prefix="/configuration", tags=["configuration"])
+
+
+def generate_slug(business_name: str, db: Session, exclude_id: int = None) -> str:
+    """Genera un slug único a partir del nombre del negocio"""
+    # Convertir a minúsculas y eliminar caracteres especiales
+    slug = business_name.lower()
+    slug = re.sub(r'[^\w\s-]', '', slug)
+    slug = re.sub(r'[-\s]+', '-', slug)
+    slug = slug.strip('-')
+    slug = slug or 'mi-negocio'
+    
+    # Asegurar que el slug es único
+    counter = 1
+    original_slug = slug
+    while True:
+        query = db.query(BusinessConfiguration).filter(BusinessConfiguration.slug == slug)
+        if exclude_id:
+            query = query.filter(BusinessConfiguration.id != exclude_id)
+        
+        if query.first() is None:
+            break
+        
+        slug = f"{original_slug}-{counter}"
+        counter += 1
+    
+    return slug
 
 
 # CONFIGURACIÓN DEL NEGOCIO
@@ -28,7 +55,13 @@ def create_business_configuration(
             detail="La configuración del negocio ya existe. Usa PUT para actualizar.",
         )
     
-    new_config = BusinessConfiguration(**config.model_dump())
+    config_data = config.model_dump()
+    
+    # Generar slug si no se proporcionó
+    if not config_data.get('slug'):
+        config_data['slug'] = generate_slug(config_data['business_name'], db)
+    
+    new_config = BusinessConfiguration(**config_data)
     db.add(new_config)
     db.commit()
     db.refresh(new_config)
@@ -63,6 +96,10 @@ def update_business_configuration(
         )
     
     update_data = config_update.model_dump(exclude_unset=True)
+    
+    # Si se actualiza el nombre y no hay slug, generar uno nuevo
+    if 'business_name' in update_data and not config.slug:
+        update_data['slug'] = generate_slug(update_data['business_name'], db, config.id)
     
     for field, value in update_data.items():
         setattr(config, field, value)

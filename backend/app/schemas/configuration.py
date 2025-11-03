@@ -39,6 +39,7 @@ class PartnerResponse(PartnerBase):
 
 class BusinessConfigurationBase(BaseModel):
     business_name: str
+    slug: Optional[str] = None
     legal_name: Optional[str] = None
     rif: Optional[str] = None
     phone: Optional[str] = None
@@ -55,6 +56,7 @@ class BusinessConfigurationCreate(BusinessConfigurationBase):
 
 class BusinessConfigurationUpdate(BaseModel):
     business_name: Optional[str] = None
+    slug: Optional[str] = None
     legal_name: Optional[str] = None
     rif: Optional[str] = None
     phone: Optional[str] = None

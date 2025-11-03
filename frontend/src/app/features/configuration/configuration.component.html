@@ -30,6 +30,29 @@
             tooltipPosition="top"
           />
         </div>
+
+        <!-- Slug / URL Pública -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2">URL del Catálogo Público</label>
+          <div class="flex items-center space-x-2">
+            <span class="text-sm text-gray-600">/catalog/</span>
+            <input 
+              type="text" 
+              formControlName="slug" 
+              class="input-field flex-1"
+              placeholder="mi-negocio"
+              pattern="[a-z0-9-]+"
+              appTooltip="URL única para acceder al catálogo público de tu negocio. Solo letras minúsculas, números y guiones."
+              tooltipPosition="top"
+            />
+          </div>
+          <p *ngIf="configuration?.slug" class="text-xs text-green-600 mt-1">
+            🌐 Tu catálogo público: <a [href]="'/catalog/' + configuration?.slug" target="_blank" class="underline font-medium">/catalog/{{ configuration?.slug }}</a>
+          </p>
+          <p *ngIf="!configuration?.slug" class="text-xs text-gray-500 mt-1">
+            Se generará automáticamente a partir del nombre del negocio si no especificas uno.
+          </p>
+        </div>
         
         <!-- Razón Social -->
         <div class="md:col-span-2">

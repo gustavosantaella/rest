@@ -23,9 +23,9 @@ export interface MenuItem {
   is_available: boolean;
   is_featured: boolean;
   image_url?: string;
-  created_at: string;
+  created_at?: string;
   updated_at?: string;
-  ingredients: IngredientItem[];
+  ingredients?: IngredientItem[];  // Opcional para catálogo público
 }
 
 export interface MenuCategoryCreate {

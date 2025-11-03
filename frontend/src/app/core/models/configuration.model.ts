@@ -16,6 +16,7 @@ export interface Partner {
 export interface BusinessConfiguration {
   id: number;
   business_name: string;
+  slug?: string;
   legal_name?: string;
   rif?: string;
   phone?: string;
@@ -31,6 +32,7 @@ export interface BusinessConfiguration {
 
 export interface BusinessConfigurationCreate {
   business_name: string;
+  slug?: string;
   legal_name?: string;
   rif?: string;
   phone?: string;

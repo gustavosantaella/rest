@@ -1,0 +1,285 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex items-center justify-center min-h-screen">
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-primary-600 mx-auto mb-4"></div>
+      <p class="text-gray-600">Cargando catálogo...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="flex items-center justify-center min-h-screen">
+    <div class="text-center max-w-md px-4">
+      <svg class="w-24 h-24 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <h2 class="text-2xl font-bold text-gray-800 mb-2">Negocio no encontrado</h2>
+      <p class="text-gray-600">No pudimos encontrar el negocio que buscas.</p>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading && !error && businessInfo" class="pb-20">
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <img 
+              *ngIf="businessInfo.logo_url && !logoError" 
+              [src]="uploadService.getFullImageUrl(businessInfo.logo_url)" 
+              [alt]="businessInfo.business_name"
+              class="h-12 w-12 rounded-full object-cover"
+              (error)="onLogoError()"
+            />
+            <div *ngIf="!businessInfo.logo_url || logoError" class="h-12 w-12 rounded-full bg-primary-600 flex items-center justify-center">
+              <span class="text-white text-xl font-bold">{{ businessInfo.business_name.charAt(0) }}</span>
+            </div>
+            <div>
+              <h1 class="text-2xl font-bold text-gray-900">{{ businessInfo.business_name }}</h1>
+              <p *ngIf="businessInfo.address" class="text-sm text-gray-600">{{ businessInfo.address }}</p>
+            </div>
+          </div>
+          
+          <div class="hidden md:flex flex-col items-end text-right text-sm">
+            <p *ngIf="businessInfo.phone" class="text-gray-600">📞 {{ businessInfo.phone }}</p>
+            <p *ngIf="businessInfo.email" class="text-gray-600">✉️ {{ businessInfo.email }}</p>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex space-x-1 mt-4 border-b border-gray-200">
+          <button
+            (click)="activeTab = 'menu'"
+            [class.border-primary-600]="activeTab === 'menu'"
+            [class.text-primary-600]="activeTab === 'menu'"
+            [class.text-gray-600]="activeTab !== 'menu'"
+            class="px-6 py-3 font-medium border-b-2 transition-colors"
+          >
+            📖 Menú
+          </button>
+          <button
+            (click)="activeTab = 'products'"
+            [class.border-primary-600]="activeTab === 'products'"
+            [class.text-primary-600]="activeTab === 'products'"
+            [class.text-gray-600]="activeTab !== 'products'"
+            class="px-6 py-3 font-medium border-b-2 transition-colors"
+          >
+            🛒 Productos
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Menu Tab -->
+    <div *ngIf="activeTab === 'menu'" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Empty State -->
+      <div *ngIf="menuItems.length === 0" class="text-center py-16">
+        <svg class="w-24 h-24 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        <h3 class="text-xl font-medium text-gray-700 mb-2">No hay platillos disponibles</h3>
+        <p class="text-gray-500">El menú estará disponible próximamente.</p>
+      </div>
+
+      <!-- Menu Categories -->
+      <div *ngFor="let category of menuCategories" class="mb-12">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6">{{ category.name }}</h2>
+        <p *ngIf="category.description" class="text-gray-600 mb-6">{{ category.description }}</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div *ngFor="let item of getMenuItemsByCategory(category.id)" 
+               (click)="openItemDetail(item.id)"
+               class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer">
+            <!-- Image -->
+            <div class="h-48 bg-gradient-to-br from-primary-100 to-primary-200 overflow-hidden">
+              <img 
+                *ngIf="item.image_url" 
+                [src]="uploadService.getFullImageUrl(item.image_url)" 
+                [alt]="item.name"
+                class="w-full h-full object-cover"
+                (error)="onImageError($event)"
+              />
+              <div *ngIf="!item.image_url" class="w-full h-full flex items-center justify-center">
+                <svg class="w-24 h-24 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-6">
+              <div class="flex justify-between items-start mb-3">
+                <h3 class="text-xl font-bold text-gray-900">{{ item.name }}</h3>
+                <span class="text-2xl font-bold text-green-600">{{ businessInfo.currency === 'USD' ? '$' : 'Bs' }}{{ item.price.toFixed(2) }}</span>
+              </div>
+              
+              <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ item.description || 'Sin descripción' }}</p>
+              
+              <div class="flex items-center justify-between text-sm text-gray-500">
+                <span *ngIf="item.preparation_time">🕐 {{ item.preparation_time }} min</span>
+                <span *ngIf="item.is_featured" class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+                  ⭐ Destacado
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Tab -->
+    <div *ngIf="activeTab === 'products'" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Empty State -->
+      <div *ngIf="products.length === 0" class="text-center py-16">
+        <svg class="w-24 h-24 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+        </svg>
+        <h3 class="text-xl font-medium text-gray-700 mb-2">No hay productos disponibles</h3>
+        <p class="text-gray-500">Los productos estarán disponibles próximamente.</p>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div *ngFor="let product of products" 
+             class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
+          <!-- Image -->
+          <div class="h-40 bg-gray-200">
+            <img 
+              *ngIf="product.image_url" 
+              [src]="uploadService.getFullImageUrl(product.image_url)" 
+              [alt]="product.name"
+              class="w-full h-full object-cover"
+              (error)="onImageError($event)"
+            />
+            <div *ngIf="!product.image_url" class="w-full h-full flex items-center justify-center">
+              <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+              </svg>
+            </div>
+          </div>
+          
+          <!-- Content -->
+          <div class="p-3">
+            <h3 class="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">{{ product.name }}</h3>
+            <p class="text-gray-600 text-xs mb-2 line-clamp-1">{{ product.description }}</p>
+            <div class="flex items-center justify-between">
+              <span class="text-lg font-bold text-green-600">{{ businessInfo.currency === 'USD' ? '$' : 'Bs' }}{{ product.sale_price.toFixed(2) }}</span>
+              <span class="text-xs text-gray-500">Stock: {{ product.stock }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer *ngIf="!loading && !error" class="bg-gray-800 text-white py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <p class="text-sm">© 2025 {{ businessInfo?.business_name }}. Todos los derechos reservados.</p>
+      <p class="text-xs text-gray-400 mt-2">Powered by Sistema de Gestión</p>
+    </div>
+  </footer>
+
+  <!-- Item Detail Modal -->
+  <div *ngIf="showDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" (click)="closeDetailModal()">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+      <!-- Loading State -->
+      <div *ngIf="loadingDetail" class="flex items-center justify-center py-20">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+
+      <!-- Content -->
+      <div *ngIf="!loadingDetail && selectedItem" class="relative">
+        <!-- Close Button -->
+        <button 
+          (click)="closeDetailModal()"
+          class="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+
+        <!-- Image -->
+        <div class="h-64 bg-gradient-to-br from-primary-100 to-primary-200 overflow-hidden rounded-t-2xl">
+          <img 
+            *ngIf="selectedItem.image_url" 
+            [src]="uploadService.getFullImageUrl(selectedItem.image_url)" 
+            [alt]="selectedItem.name"
+            class="w-full h-full object-cover"
+            (error)="onImageError($event)"
+          />
+          <div *ngIf="!selectedItem.image_url" class="w-full h-full flex items-center justify-center">
+            <svg class="w-32 h-32 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Details -->
+        <div class="p-6">
+          <!-- Header -->
+          <div class="flex justify-between items-start mb-4">
+            <div class="flex-1">
+              <h2 class="text-3xl font-bold text-gray-900 mb-2">{{ selectedItem.name }}</h2>
+              <div class="flex items-center space-x-4 text-sm text-gray-600">
+                <span *ngIf="selectedItem.preparation_time" class="flex items-center">
+                  🕐 {{ selectedItem.preparation_time }} minutos
+                </span>
+                <span *ngIf="selectedItem.is_featured" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full font-medium">
+                  ⭐ Destacado
+                </span>
+              </div>
+            </div>
+            <div class="text-right ml-4">
+              <p class="text-sm text-gray-600 mb-1">Precio</p>
+              <p class="text-4xl font-bold text-green-600">
+                {{ businessInfo?.currency === 'USD' ? '$' : 'Bs' }}{{ selectedItem.price.toFixed(2) }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Descripción</h3>
+            <p class="text-gray-600">{{ selectedItem.description || 'Sin descripción disponible.' }}</p>
+          </div>
+
+          <!-- Ingredients -->
+          <div *ngIf="selectedItem.ingredients && selectedItem.ingredients.length > 0" class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">Ingredientes</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div *ngFor="let ingredient of selectedItem.ingredients" 
+                   class="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex-1">
+                  <p class="font-medium text-gray-900">{{ ingredient.product_name }}</p>
+                  <p class="text-sm text-gray-600">{{ ingredient.quantity }} {{ getUnitLabel(ingredient.unit_type) }}</p>
+                </div>
+                <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- No Ingredients Message -->
+          <div *ngIf="!selectedItem.ingredients || selectedItem.ingredients.length === 0" class="mb-6">
+            <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+              <p class="text-gray-600">No se especificaron ingredientes para este platillo.</p>
+            </div>
+          </div>
+
+          <!-- Close Button -->
+          <button 
+            (click)="closeDetailModal()"
+            class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
