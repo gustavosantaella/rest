@@ -13,6 +13,27 @@ export enum PaymentMethod {
   MIXED = 'mixed'
 }
 
+export enum PaymentStatus {
+  PENDING = 'pending',
+  PARTIAL = 'partial',
+  PAID = 'paid'
+}
+
+export interface OrderPayment {
+  id?: number;
+  order_id?: number;
+  payment_method_id: number;
+  payment_method_name?: string;
+  amount: number;
+  reference?: string;
+}
+
+export interface OrderPaymentCreate {
+  payment_method_id: number;
+  amount: number;
+  reference?: string;
+}
+
 export interface OrderItem {
   id: number;
   product_id: number;
@@ -29,14 +50,19 @@ export interface Order {
   user_id: number;
   status: OrderStatus;
   payment_method?: PaymentMethod;
+  payment_status: PaymentStatus;
   subtotal: number;
   tax: number;
   discount: number;
   total: number;
+  customer_name?: string;
+  customer_email?: string;
+  customer_phone?: string;
   notes?: string;
   created_at: string;
   paid_at?: string;
   items: OrderItem[];
+  payments: OrderPayment[];
 }
 
 export interface OrderItemCreate {
@@ -48,6 +74,14 @@ export interface OrderItemCreate {
 export interface OrderCreate {
   table_id?: number;
   notes?: string;
+  customer_name?: string;
+  customer_email?: string;
+  customer_phone?: string;
   items: OrderItemCreate[];
+  payments: OrderPaymentCreate[];
+}
+
+export interface AddPaymentsToOrder {
+  payments: OrderPaymentCreate[];
 }
 

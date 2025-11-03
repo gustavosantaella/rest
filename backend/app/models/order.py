@@ -20,6 +20,12 @@ class PaymentMethod(str, enum.Enum):
     MIXED = "mixed"
 
 
+class PaymentStatus(str, enum.Enum):
+    PENDING = "pending"  # Sin pagos
+    PARTIAL = "partial"  # Pagado parcialmente
+    PAID = "paid"        # Completamente pagado
+
+
 class Order(Base):
     __tablename__ = "orders"
     
@@ -28,12 +34,18 @@ class Order(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # Mesero que atiende
     
     status = Column(Enum(OrderStatus), default=OrderStatus.PENDING, nullable=False)
-    payment_method = Column(Enum(PaymentMethod), nullable=True)
+    payment_method = Column(Enum(PaymentMethod), nullable=True)  # Deprecated, usar payments
+    payment_status = Column(String, default="pending", nullable=False)  # pending, partial, paid
     
     subtotal = Column(Float, default=0)
     tax = Column(Float, default=0)
     discount = Column(Float, default=0)
     total = Column(Float, default=0)
+    
+    # Información del cliente (opcional)
+    customer_name = Column(String, nullable=True)
+    customer_email = Column(String, nullable=True)
+    customer_phone = Column(String, nullable=True)
     
     notes = Column(Text)  # Notas especiales del pedido
     
@@ -42,6 +54,7 @@ class Order(Base):
     paid_at = Column(DateTime(timezone=True), nullable=True)
     
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    payments = relationship("OrderPayment", back_populates="order", cascade="all, delete-orphan")
 
 
 class OrderItem(Base):

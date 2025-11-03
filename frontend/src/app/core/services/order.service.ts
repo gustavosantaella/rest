@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Order, OrderCreate } from '../models/order.model';
+import { Order, OrderCreate, AddPaymentsToOrder } from '../models/order.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -29,6 +29,10 @@ export class OrderService {
   
   deleteOrder(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+  
+  addPaymentsToOrder(orderId: number, paymentsData: AddPaymentsToOrder): Observable<Order> {
+    return this.http.post<Order>(`${this.apiUrl}/${orderId}/payments`, paymentsData);
   }
 }
 

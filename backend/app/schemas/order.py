@@ -1,7 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from typing import Optional, List
 from datetime import datetime
 from ..models.order import OrderStatus, PaymentMethod
+from .order_payment import OrderPaymentCreate, OrderPaymentResponse
 
 
 class OrderItemCreate(BaseModel):
@@ -26,10 +27,14 @@ class OrderItemResponse(BaseModel):
 class OrderBase(BaseModel):
     table_id: Optional[int] = None
     notes: Optional[str] = None
+    customer_name: Optional[str] = None
+    customer_email: Optional[str] = None
+    customer_phone: Optional[str] = None
 
 
 class OrderCreate(OrderBase):
     items: List[OrderItemCreate]
+    payments: List[OrderPaymentCreate] = []  # Opcional - se puede pagar después
 
 
 class OrderUpdate(BaseModel):
@@ -43,7 +48,8 @@ class OrderResponse(OrderBase):
     id: int
     user_id: int
     status: OrderStatus
-    payment_method: Optional[PaymentMethod] = None
+    payment_method: Optional[PaymentMethod] = None  # Deprecated
+    payment_status: str = "pending"
     subtotal: float
     tax: float
     discount: float
@@ -51,7 +57,12 @@ class OrderResponse(OrderBase):
     created_at: datetime
     paid_at: Optional[datetime] = None
     items: List[OrderItemResponse] = []
+    payments: List[OrderPaymentResponse] = []
     
     class Config:
         from_attributes = True
+
+
+class AddPaymentsToOrder(BaseModel):
+    payments: List[OrderPaymentCreate]
 

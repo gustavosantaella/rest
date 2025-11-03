@@ -245,6 +245,96 @@
       </button>
     </div>
   </div>
+  
+  <!-- Payment Methods Section -->
+  <div *ngIf="configExists && !loading" class="card">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-xl font-bold">Métodos de Pago</h2>
+        <p class="text-sm text-gray-600 mt-1">Configura los métodos de pago aceptados en tu negocio</p>
+      </div>
+      <button (click)="openPaymentMethodModal()" class="btn-primary">
+        + Agregar Método de Pago
+      </button>
+    </div>
+    
+    <!-- Payment Methods Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div *ngFor="let method of paymentMethods" class="border-2 rounded-lg p-4 hover:shadow-lg transition-shadow" [class.border-gray-200]="method.is_active" [class.border-red-200]="!method.is_active" [class.bg-gray-50]="!method.is_active">
+        <!-- Method Header -->
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex-1">
+            <div class="flex items-center space-x-2 mb-1">
+              <span class="text-2xl">
+                {{ getPaymentMethodIcon(method.type) }}
+              </span>
+              <h3 class="font-bold text-lg">{{ method.name }}</h3>
+            </div>
+            <span class="text-xs font-medium px-2 py-1 rounded bg-gray-200 text-gray-700">
+              {{ getPaymentMethodLabel(method.type) }}
+            </span>
+          </div>
+          <span [class]="method.is_active ? 'badge-success' : 'badge-danger'" class="badge text-xs">
+            {{ method.is_active ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+        
+        <!-- Method Details -->
+        <div class="space-y-2 mt-4" *ngIf="method.type === 'pago_movil' || method.type === 'transferencia'">
+          <div *ngIf="method.bank" class="text-sm">
+            <span class="text-gray-600">Banco:</span>
+            <span class="font-medium ml-2">{{ method.bank }}</span>
+          </div>
+          <div *ngIf="method.account_holder" class="text-sm">
+            <span class="text-gray-600">Titular:</span>
+            <span class="font-medium ml-2">{{ method.account_holder }}</span>
+          </div>
+          <div *ngIf="method.dni" class="text-sm">
+            <span class="text-gray-600">Cédula:</span>
+            <span class="font-medium ml-2">{{ method.dni }}</span>
+          </div>
+          <div *ngIf="method.phone && method.type === 'pago_movil'" class="text-sm">
+            <span class="text-gray-600">Teléfono:</span>
+            <span class="font-medium ml-2">{{ method.phone }}</span>
+          </div>
+          <div *ngIf="method.account_number && method.type === 'transferencia'" class="text-sm">
+            <span class="text-gray-600">Cuenta:</span>
+            <span class="font-medium ml-2">{{ method.account_number }}</span>
+          </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex space-x-2 pt-3 border-t mt-3">
+          <button
+            (click)="openPaymentMethodModal(method)"
+            class="flex-1 btn-secondary text-sm py-2"
+          >
+            Editar
+          </button>
+          <button
+            (click)="deletePaymentMethod(method)"
+            class="btn-danger text-sm py-2 px-3"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Empty State -->
+    <div *ngIf="paymentMethods.length === 0" class="text-center py-12">
+      <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+      </svg>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No hay métodos de pago configurados</h3>
+      <p class="text-gray-500 mb-4">Agrega los métodos de pago que aceptas en tu negocio</p>
+      <button (click)="openPaymentMethodModal()" class="btn-primary">
+        Agregar Primer Método de Pago
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- Partner Modal -->
@@ -341,6 +431,203 @@
           </button>
           <button type="submit" [disabled]="partnerForm.invalid" class="btn-primary disabled:opacity-50">
             {{ editingPartner ? 'Actualizar' : 'Agregar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Method Modal -->
+<div *ngIf="showPaymentMethodModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold">{{ editingPaymentMethod ? 'Editar' : 'Agregar' }} Método de Pago</h2>
+        <button (click)="closePaymentMethodModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <form [formGroup]="paymentMethodForm" (ngSubmit)="savePaymentMethod()">
+        <div class="space-y-4">
+          <!-- Tipo de Método de Pago -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Método de Pago *</label>
+            <select 
+              formControlName="type" 
+              class="input-field"
+              (change)="onPaymentTypeChange()"
+              [disabled]="editingPaymentMethod !== null"
+              appTooltip="Selecciona el tipo de método de pago que quieres configurar."
+              tooltipPosition="top"
+            >
+              <option value="">Selecciona un tipo</option>
+              <option value="pago_movil">💳 Pago Móvil</option>
+              <option value="transferencia">🏦 Transferencia Bancaria</option>
+              <option value="efectivo">💵 Efectivo</option>
+              <option value="bolivares">Bs. Bolívares</option>
+              <option value="dolares">$ Dólares</option>
+              <option value="euros">€ Euros</option>
+            </select>
+          </div>
+          
+          <!-- Nombre del Método -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre Descriptivo *</label>
+            <input 
+              type="text" 
+              formControlName="name" 
+              class="input-field"
+              placeholder="Ej: Pago Móvil Banco Provincial"
+              appTooltip="Nombre que aparecerá cuando selecciones este método de pago."
+              tooltipPosition="top"
+            />
+          </div>
+          
+          <!-- Campos específicos para Pago Móvil -->
+          <div *ngIf="selectedPaymentType === 'pago_movil'" class="space-y-4 p-4 bg-blue-50 rounded-lg">
+            <h3 class="font-medium text-blue-900">Datos del Pago Móvil</h3>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono *</label>
+              <input 
+                type="text" 
+                formControlName="phone" 
+                class="input-field"
+                placeholder="Ej: 0424-1234567"
+                appTooltip="Número de teléfono asociado al pago móvil."
+                tooltipPosition="top"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Cédula *</label>
+              <input 
+                type="text" 
+                formControlName="dni" 
+                class="input-field"
+                placeholder="Ej: V-12345678"
+                appTooltip="Cédula del titular de la cuenta."
+                tooltipPosition="top"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Banco *</label>
+              <input 
+                type="text" 
+                formControlName="bank" 
+                class="input-field"
+                placeholder="Ej: Banco Provincial"
+                appTooltip="Nombre del banco donde está el pago móvil."
+                tooltipPosition="top"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Titular *</label>
+              <input 
+                type="text" 
+                formControlName="account_holder" 
+                class="input-field"
+                placeholder="Ej: Juan Pérez"
+                appTooltip="Nombre completo del titular de la cuenta."
+                tooltipPosition="top"
+              />
+            </div>
+          </div>
+          
+          <!-- Campos específicos para Transferencia Bancaria -->
+          <div *ngIf="selectedPaymentType === 'transferencia'" class="space-y-4 p-4 bg-green-50 rounded-lg">
+            <h3 class="font-medium text-green-900">Datos de la Cuenta Bancaria</h3>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Número de Cuenta *</label>
+              <input 
+                type="text" 
+                formControlName="account_number" 
+                class="input-field"
+                placeholder="Ej: 0102-0123-45-1234567890"
+                appTooltip="Número de cuenta bancaria para recibir transferencias."
+                tooltipPosition="top"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Titular *</label>
+              <input 
+                type="text" 
+                formControlName="account_holder" 
+                class="input-field"
+                placeholder="Ej: Juan Pérez"
+                appTooltip="Nombre completo del titular de la cuenta."
+                tooltipPosition="top"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Cédula *</label>
+              <input 
+                type="text" 
+                formControlName="dni" 
+                class="input-field"
+                placeholder="Ej: V-12345678"
+                appTooltip="Cédula del titular de la cuenta."
+                tooltipPosition="top"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Banco *</label>
+              <input 
+                type="text" 
+                formControlName="bank" 
+                class="input-field"
+                placeholder="Ej: Banco Provincial"
+                appTooltip="Nombre del banco donde está la cuenta."
+                tooltipPosition="top"
+              />
+            </div>
+          </div>
+          
+          <!-- Mensaje informativo para otros métodos -->
+          <div *ngIf="selectedPaymentType && ['efectivo', 'bolivares', 'dolares', 'euros'].includes(selectedPaymentType)" class="p-4 bg-gray-50 rounded-lg">
+            <div class="flex items-start space-x-3">
+              <svg class="w-5 h-5 text-gray-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <div>
+                <h4 class="font-medium text-gray-900">Método de Pago en Efectivo</h4>
+                <p class="text-sm text-gray-600 mt-1">
+                  Este método no requiere información adicional. Solo necesitas darle un nombre descriptivo.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Estado Activo -->
+          <div>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                formControlName="is_active"
+                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span class="text-sm font-medium text-gray-700">Método de pago activo</span>
+            </label>
+            <p class="text-xs text-gray-500 mt-1">Los métodos inactivos no aparecerán como opción al crear órdenes.</p>
+          </div>
+        </div>
+        
+        <div class="mt-6 flex justify-end space-x-3">
+          <button type="button" (click)="closePaymentMethodModal()" class="btn-secondary">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="paymentMethodForm.invalid" class="btn-primary disabled:opacity-50">
+            {{ editingPaymentMethod ? 'Actualizar' : 'Agregar' }}
           </button>
         </div>
       </form>
