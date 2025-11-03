@@ -6,6 +6,8 @@ import { ProductService } from '../../core/services/product.service';
 import { TableService } from '../../core/services/table.service';
 import { MenuService } from '../../core/services/menu.service';
 import { PaymentMethodService } from '../../core/services/payment-method.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { Order, OrderStatus, PaymentMethod, OrderCreate, OrderItemCreate, OrderPayment, PaymentStatus, AddPaymentsToOrder, UpdateOrderItems } from '../../core/models/order.model';
 import { PaymentMethod as PaymentMethodModel, PAYMENT_METHOD_LABELS } from '../../core/models/payment-method.model';
 import { Product } from '../../core/models/product.model';
@@ -27,6 +29,8 @@ export class OrdersComponent implements OnInit {
   private menuService = inject(MenuService);
   private paymentMethodService = inject(PaymentMethodService);
   private fb = inject(FormBuilder);
+  private notificationService = inject(NotificationService);
+  private confirmService = inject(ConfirmService);
   
   orders: Order[] = [];
   products: Product[] = [];
@@ -184,27 +188,39 @@ export class OrdersComponent implements OnInit {
     // Filtrar pagos válidos (que tengan método seleccionado y monto > 0)
     const validPayments = this.orderPayments.filter(p => p.payment_method_id > 0 && p.amount > 0);
     
+    // Calcular el total estimado
+    const totalEstimado = this.calculateEstimatedTotal();
+    
     // Si hay pagos, validar que la suma sea correcta
     if (validPayments.length > 0) {
-      const totalEstimado = this.calculateEstimatedTotal();
       const totalPagado = validPayments.reduce((sum, p) => sum + p.amount, 0);
       
       if (Math.abs(totalPagado - totalEstimado) > 0.01) {
         const falta = totalEstimado - totalPagado;
         if (falta > 0) {
-          const confirmacion = confirm(
-            `El pago no está completo. Faltan $${falta.toFixed(2)}\n\n` +
-            `¿Deseas crear la orden de todas formas?\n` +
-            `(Se marcará como "Pendiente de Pago")`
-          );
-          if (!confirmacion) return;
+          this.confirmService.confirm({
+            title: 'Pago incompleto',
+            message: `El pago no está completo. Faltan $${falta.toFixed(2)}\n\n¿Deseas crear la orden de todas formas?\n(Se marcará como "Pendiente de Pago")`,
+            confirmText: 'Sí, crear orden',
+            cancelText: 'No, revisar pago',
+            type: 'warning'
+          }).subscribe(confirmed => {
+            if (confirmed) {
+              this.createOrderWithData(validPayments);
+            }
+          });
+          return;
         } else {
-          alert(`El pago excede el total. Sobran $${Math.abs(falta).toFixed(2)}\n\nAjusta los montos.`);
+          this.notificationService.warning(`El pago excede el total. Sobran $${Math.abs(falta).toFixed(2)}. Ajusta los montos.`);
           return;
         }
       }
     }
     
+    this.createOrderWithData(validPayments);
+  }
+  
+  private createOrderWithData(validPayments: any[]): void {
     const orderData: OrderCreate = {
       table_id: this.orderForm.value.table_id || undefined,
       notes: this.orderForm.value.notes,
@@ -223,9 +239,10 @@ export class OrdersComponent implements OnInit {
       next: () => {
         this.loadData();
         this.closeModal();
+        this.notificationService.success('Orden creada exitosamente');
       },
       error: (err) => {
-        alert('Error al crear la orden: ' + (err.error?.detail || 'Error desconocido'));
+        this.notificationService.error('Error al crear la orden: ' + (err.error?.detail || 'Error desconocido'));
       }
     });
   }
@@ -324,7 +341,7 @@ export class OrdersComponent implements OnInit {
     if (this.orderPayments.length > 1) {
       this.orderPayments.splice(index, 1);
     } else {
-      alert('Debe haber al menos un método de pago');
+      this.notificationService.warning('Debe haber al menos un método de pago');
     }
   }
   
@@ -460,7 +477,7 @@ export class OrdersComponent implements OnInit {
     const validPayments = this.orderPayments.filter(p => p.payment_method_id > 0 && p.amount > 0);
     
     if (validPayments.length === 0) {
-      alert('Debe agregar al menos un método de pago');
+      this.notificationService.warning('Debe agregar al menos un método de pago');
       return;
     }
     
@@ -471,7 +488,7 @@ export class OrdersComponent implements OnInit {
     
     // Validar que no exceda
     if (totalAfterPayments > this.orderToPay.total + 0.01) {
-      alert(`Los pagos exceden el total.\n\nYa pagado: $${alreadyPaid.toFixed(2)}\nNuevo: $${newPaymentsTotal.toFixed(2)}\nTotal orden: $${this.orderToPay.total.toFixed(2)}`);
+      this.notificationService.error(`Los pagos exceden el total.\n\nYa pagado: $${alreadyPaid.toFixed(2)}\nNuevo: $${newPaymentsTotal.toFixed(2)}\nTotal orden: $${this.orderToPay.total.toFixed(2)}`);
       return;
     }
     
@@ -495,10 +512,10 @@ export class OrdersComponent implements OnInit {
       next: () => {
         this.loadData();
         this.closePaymentModal();
-        alert('✅ Pago registrado exitosamente');
+        this.notificationService.success('Pago registrado exitosamente');
       },
       error: (err) => {
-        alert('Error al procesar el pago: ' + (err.error?.detail || 'Error desconocido'));
+        this.notificationService.error('Error al procesar el pago: ' + (err.error?.detail || 'Error desconocido'));
       }
     });
   }
@@ -584,17 +601,17 @@ export class OrdersComponent implements OnInit {
             next: () => {
               this.loadData();
               this.closeEditModal();
-              alert('✅ Orden actualizada exitosamente');
+              this.notificationService.success('Orden actualizada exitosamente');
             }
           });
         } else {
           this.loadData();
           this.closeEditModal();
-          alert('✅ Orden actualizada exitosamente');
+          this.notificationService.success('Orden actualizada exitosamente');
         }
       },
       error: (err) => {
-        alert('Error al actualizar la orden: ' + (err.error?.detail || 'Error desconocido'));
+        this.notificationService.error('Error al actualizar la orden: ' + (err.error?.detail || 'Error desconocido'));
       }
     });
   }

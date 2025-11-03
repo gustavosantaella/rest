@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models.user import User
+from ..models.configuration import BusinessConfiguration
 from ..schemas.user import UserResponse
 from ..schemas.profile import ProfileUpdate, PasswordChange
-from ..utils.dependencies import get_current_user
+from ..utils.dependencies import get_current_user, get_current_active_admin
 from ..utils.security import verify_password, get_password_hash
 
 router = APIRouter(prefix="/profile", tags=["profile"])
@@ -77,4 +78,83 @@ def change_password(
     db.commit()
     
     return {"message": "Contraseña actualizada exitosamente"}
+
+
+@router.delete("/delete-account-permanently", status_code=status.HTTP_200_OK)
+def delete_account_permanently(
+    password_confirmation: str,
+    current_user: User = Depends(get_current_active_admin),
+    db: Session = Depends(get_db),
+):
+    """
+    Eliminar permanentemente la cuenta del usuario y TODOS los datos del negocio.
+    
+    ADVERTENCIA: Esta acción es IRREVERSIBLE y eliminará:
+    - Todos los usuarios del negocio
+    - Todos los productos y categorías
+    - Todas las órdenes e items
+    - Todos los métodos de pago
+    - Todo el menú y sus categorías
+    - Todas las mesas
+    - Toda la configuración del negocio
+    - Todos los socios
+    
+    Solo los administradores pueden realizar esta acción.
+    """
+    
+    # Verificar que el usuario es administrador
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo los administradores pueden eliminar permanentemente el negocio",
+        )
+    
+    # Verificar contraseña para confirmar acción crítica
+    if not verify_password(password_confirmation, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Contraseña incorrecta. No se puede proceder con la eliminación",
+        )
+    
+    # Verificar que el usuario pertenece a un negocio
+    if not current_user.business_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No estás asociado a ningún negocio",
+        )
+    
+    # Obtener el negocio
+    business = db.query(BusinessConfiguration).filter(
+        BusinessConfiguration.id == current_user.business_id
+    ).first()
+    
+    if not business:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Negocio no encontrado",
+        )
+    
+    business_name = business.business_name
+    
+    try:
+        # Eliminar el negocio completo
+        # Gracias al CASCADE configurado en las foreign keys, esto eliminará:
+        # - Todos los usuarios asociados
+        # - Todos los partners
+        # - Y cualquier otra relación con CASCADE
+        
+        db.delete(business)
+        db.commit()
+        
+        return {
+            "message": f"El negocio '{business_name}' y todos sus datos han sido eliminados permanentemente",
+            "warning": "Esta acción es irreversible. Todos los datos han sido eliminados de la base de datos"
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al eliminar el negocio: {str(e)}",
+        )
 

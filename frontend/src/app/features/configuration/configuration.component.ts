@@ -4,6 +4,8 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ConfigurationService } from '../../core/services/configuration.service';
 import { UserService } from '../../core/services/user.service';
 import { PaymentMethodService } from '../../core/services/payment-method.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { BusinessConfiguration, Partner, BusinessConfigurationCreate, PartnerCreate } from '../../core/models/configuration.model';
 import { User, UserRole } from '../../core/models/user.model';
 import { PaymentMethod, PaymentMethodType, PaymentMethodCreate, PAYMENT_METHOD_LABELS } from '../../core/models/payment-method.model';
@@ -21,6 +23,8 @@ export class ConfigurationComponent implements OnInit {
   private userService = inject(UserService);
   private paymentMethodService = inject(PaymentMethodService);
   private fb = inject(FormBuilder);
+  private notificationService = inject(NotificationService);
+  private confirmService = inject(ConfirmService);
   
   configuration: BusinessConfiguration | null = null;
   adminUsers: User[] = [];
@@ -131,10 +135,10 @@ export class ConfigurationComponent implements OnInit {
       this.configService.updateConfiguration(configData).subscribe({
         next: () => {
           this.loadData();
-          alert('Configuración actualizada exitosamente. Recarga la página (F5) para ver el nombre actualizado.');
+          this.notificationService.success('Configuración actualizada exitosamente. Recarga la página (F5) para ver el nombre actualizado.');
         },
         error: (err) => {
-          alert('Error al actualizar: ' + (err.error?.detail || 'Error desconocido'));
+          this.notificationService.error('Error al actualizar: ' + (err.error?.detail || 'Error desconocido'));
         }
       });
     } else {
@@ -142,10 +146,10 @@ export class ConfigurationComponent implements OnInit {
       this.configService.createConfiguration(configData).subscribe({
         next: () => {
           this.loadData();
-          alert('Configuración creada exitosamente. Recarga la página (F5) para ver el nombre de tu negocio.');
+          this.notificationService.success('Configuración creada exitosamente. Recarga la página (F5) para ver el nombre de tu negocio.');
         },
         error: (err) => {
-          alert('Error al crear: ' + (err.error?.detail || 'Error desconocido'));
+          this.notificationService.error('Error al crear: ' + (err.error?.detail || 'Error desconocido'));
         }
       });
     }
@@ -177,7 +181,7 @@ export class ConfigurationComponent implements OnInit {
     if (this.partnerForm.invalid) return;
     
     if (!this.configExists) {
-      alert('Primero debes crear la configuración del negocio');
+      this.notificationService.warning('Primero debes crear la configuración del negocio');
       return;
     }
     
@@ -188,9 +192,10 @@ export class ConfigurationComponent implements OnInit {
         next: () => {
           this.loadData();
           this.closePartnerModal();
+          this.notificationService.success('Socio actualizado exitosamente');
         },
         error: (err) => {
-          alert('Error: ' + (err.error?.detail || 'Error desconocido'));
+          this.notificationService.error('Error: ' + (err.error?.detail || 'Error desconocido'));
         }
       });
     } else {
@@ -198,22 +203,29 @@ export class ConfigurationComponent implements OnInit {
         next: () => {
           this.loadData();
           this.closePartnerModal();
+          this.notificationService.success('Socio agregado exitosamente');
         },
         error: (err) => {
-          alert('Error: ' + (err.error?.detail || 'Error desconocido'));
+          this.notificationService.error('Error: ' + (err.error?.detail || 'Error desconocido'));
         }
       });
     }
   }
   
   deletePartner(partner: Partner): void {
-    if (confirm(`¿Estás seguro de eliminar a ${partner.user_name} como socio?`)) {
-      this.configService.deletePartner(partner.id).subscribe({
-        next: () => {
-          this.loadData();
-        }
-      });
-    }
+    this.confirmService.confirmDelete(`${partner.user_name} como socio`).subscribe(confirmed => {
+      if (confirmed) {
+        this.configService.deletePartner(partner.id).subscribe({
+          next: () => {
+            this.loadData();
+            this.notificationService.success('Socio eliminado exitosamente');
+          },
+          error: (err) => {
+            this.notificationService.error('Error al eliminar socio: ' + (err.error?.detail || 'Error desconocido'));
+          }
+        });
+      }
+    });
   }
   
   getTotalParticipation(): number {
@@ -292,7 +304,7 @@ export class ConfigurationComponent implements OnInit {
     if (this.paymentMethodForm.invalid) return;
     
     if (!this.configExists) {
-      alert('Primero debes crear la configuración del negocio');
+      this.notificationService.warning('Primero debes crear la configuración del negocio');
       return;
     }
     
@@ -303,9 +315,10 @@ export class ConfigurationComponent implements OnInit {
         next: () => {
           this.loadData();
           this.closePaymentMethodModal();
+          this.notificationService.success('Método de pago actualizado exitosamente');
         },
         error: (err) => {
-          alert('Error: ' + (err.error?.detail || 'Error desconocido'));
+          this.notificationService.error('Error: ' + (err.error?.detail || 'Error desconocido'));
         }
       });
     } else {
@@ -313,22 +326,29 @@ export class ConfigurationComponent implements OnInit {
         next: () => {
           this.loadData();
           this.closePaymentMethodModal();
+          this.notificationService.success('Método de pago creado exitosamente');
         },
         error: (err) => {
-          alert('Error: ' + (err.error?.detail || 'Error desconocido'));
+          this.notificationService.error('Error: ' + (err.error?.detail || 'Error desconocido'));
         }
       });
     }
   }
   
   deletePaymentMethod(method: PaymentMethod): void {
-    if (confirm(`¿Estás seguro de eliminar el método de pago "${method.name}"?`)) {
-      this.paymentMethodService.deletePaymentMethod(method.id).subscribe({
-        next: () => {
-          this.loadData();
-        }
-      });
-    }
+    this.confirmService.confirmDelete(`el método de pago "${method.name}"`).subscribe(confirmed => {
+      if (confirmed) {
+        this.paymentMethodService.deletePaymentMethod(method.id).subscribe({
+          next: () => {
+            this.loadData();
+            this.notificationService.success('Método de pago eliminado exitosamente');
+          },
+          error: (err) => {
+            this.notificationService.error('Error al eliminar método de pago: ' + (err.error?.detail || 'Error desconocido'));
+          }
+        });
+      }
+    });
   }
   
   getPaymentMethodLabel(type: string): string {
@@ -349,7 +369,7 @@ export class ConfigurationComponent implements OnInit {
 
   downloadQRCode(): void {
     if (!this.configuration?.slug) {
-      alert('Primero debes guardar la configuración con un slug válido.');
+      this.notificationService.warning('Primero debes guardar la configuración con un slug válido.');
       return;
     }
 
@@ -368,9 +388,10 @@ export class ConfigurationComponent implements OnInit {
         // Limpiar
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
+        this.notificationService.success('Código QR descargado exitosamente');
       },
       error: (err) => {
-        alert('Error al descargar el código QR: ' + (err.error?.detail || 'Error desconocido'));
+        this.notificationService.error('Error al descargar el código QR: ' + (err.error?.detail || 'Error desconocido'));
       }
     });
   }

@@ -21,6 +21,7 @@ class Category(Base):
     name = Column(String, unique=True, nullable=False)
     description = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    deleted_at = Column(DateTime(timezone=True), nullable=True)  # Soft delete
     
     products = relationship("Product", back_populates="category")
 
@@ -50,6 +51,7 @@ class Product(Base):
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    deleted_at = Column(DateTime(timezone=True), nullable=True)  # Soft delete
     
     category = relationship("Category", back_populates="products")
 

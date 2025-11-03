@@ -17,7 +17,10 @@ def create_category(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_manager)
 ):
-    db_category = db.query(Category).filter(Category.name == category.name).first()
+    db_category = db.query(Category).filter(
+        Category.name == category.name,
+        Category.deleted_at.is_(None)  # Solo categorías no eliminadas
+    ).first()
     if db_category:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -38,7 +41,9 @@ def read_categories(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    categories = db.query(Category).offset(skip).limit(limit).all()
+    categories = db.query(Category).filter(
+        Category.deleted_at.is_(None)  # Solo categorías no eliminadas
+    ).offset(skip).limit(limit).all()
     return categories
 
 
@@ -49,8 +54,11 @@ def create_product(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_manager)
 ):
-    # Verificar que la categoría existe
-    category = db.query(Category).filter(Category.id == product.category_id).first()
+    # Verificar que la categoría existe y no está eliminada
+    category = db.query(Category).filter(
+        Category.id == product.category_id,
+        Category.deleted_at.is_(None)  # Solo categorías no eliminadas
+    ).first()
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -71,7 +79,9 @@ def read_products(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    products = db.query(Product).offset(skip).limit(limit).all()
+    products = db.query(Product).filter(
+        Product.deleted_at.is_(None)  # Solo productos no eliminados
+    ).offset(skip).limit(limit).all()
     return products
 
 
@@ -81,7 +91,10 @@ def read_product(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    product = db.query(Product).filter(Product.id == product_id).first()
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.deleted_at.is_(None)  # Solo productos no eliminados
+    ).first()
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -97,7 +110,10 @@ def update_product(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_manager)
 ):
-    product = db.query(Product).filter(Product.id == product_id).first()
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.deleted_at.is_(None)  # Solo productos no eliminados
+    ).first()
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -120,14 +136,20 @@ def delete_product(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_manager)
 ):
-    product = db.query(Product).filter(Product.id == product_id).first()
+    from datetime import datetime
+    
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.deleted_at.is_(None)  # Solo productos no eliminados
+    ).first()
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Producto no encontrado"
         )
     
-    db.delete(product)
+    # Soft delete: marcar como eliminado con timestamp
+    product.deleted_at = datetime.now()
     db.commit()
     return None
 

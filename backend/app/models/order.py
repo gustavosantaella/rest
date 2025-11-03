@@ -51,6 +51,7 @@ class Order(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     paid_at = Column(DateTime(timezone=True), nullable=True)
+    deleted_at = Column(DateTime(timezone=True), nullable=True)  # Soft delete
     
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
     payments = relationship("OrderPayment", back_populates="order", cascade="all, delete-orphan")
@@ -70,6 +71,7 @@ class OrderItem(Base):
     notes = Column(Text)  # Notas especiales del item (sin cebolla, etc.)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    deleted_at = Column(DateTime(timezone=True), nullable=True)  # Soft delete
     
     order = relationship("Order", back_populates="items")
 

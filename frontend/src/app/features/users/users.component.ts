@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UserService } from '../../core/services/user.service';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { User, UserRole, UserCreate } from '../../core/models/user.model';
 import { TooltipDirective } from '../../shared/directives/tooltip.directive';
 
@@ -17,6 +19,8 @@ export class UsersComponent implements OnInit {
   private userService = inject(UserService);
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
+  private notificationService = inject(NotificationService);
+  private confirmService = inject(ConfirmService);
   
   users: User[] = [];
   currentUser: User | null = null;
@@ -113,9 +117,10 @@ export class UsersComponent implements OnInit {
         next: () => {
           this.loadUsers();
           this.closeModal();
+          this.notificationService.success('Usuario actualizado exitosamente');
         },
         error: (err) => {
-          alert('Error al actualizar usuario: ' + (err.error?.detail || 'Error desconocido'));
+          this.notificationService.error('Error al actualizar usuario: ' + (err.error?.detail || 'Error desconocido'));
         }
       });
     } else {
@@ -123,9 +128,10 @@ export class UsersComponent implements OnInit {
         next: () => {
           this.loadUsers();
           this.closeModal();
+          this.notificationService.success('Usuario creado exitosamente');
         },
         error: (err) => {
-          alert('Error al crear usuario: ' + (err.error?.detail || 'Error desconocido'));
+          this.notificationService.error('Error al crear usuario: ' + (err.error?.detail || 'Error desconocido'));
         }
       });
     }
@@ -142,17 +148,23 @@ export class UsersComponent implements OnInit {
   
   deleteUser(user: User): void {
     if (user.id === this.currentUser?.id) {
-      alert('No puedes eliminar tu propio usuario');
+      this.notificationService.warning('No puedes eliminar tu propio usuario');
       return;
     }
     
-    if (confirm(`¿Estás seguro de eliminar al usuario "${user.username}"?`)) {
-      this.userService.deleteUser(user.id).subscribe({
-        next: () => {
-          this.loadUsers();
-        }
-      });
-    }
+    this.confirmService.confirmDelete(`${user.full_name} (${user.username})`).subscribe(confirmed => {
+      if (confirmed) {
+        this.userService.deleteUser(user.id).subscribe({
+          next: () => {
+            this.loadUsers();
+            this.notificationService.success('Usuario eliminado exitosamente');
+          },
+          error: (err) => {
+            this.notificationService.error('Error al eliminar usuario: ' + (err.error?.detail || 'Error desconocido'));
+          }
+        });
+      }
+    });
   }
   
   getRoleBadgeClass(role: UserRole): string {

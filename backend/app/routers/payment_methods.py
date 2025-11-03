@@ -14,16 +14,21 @@ def read_payment_methods(
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
-    """Obtener todos los métodos de pago"""
-    payment_methods = db.query(PaymentMethod).offset(skip).limit(limit).all()
+    """Obtener todos los métodos de pago (no eliminados)"""
+    payment_methods = db.query(PaymentMethod).filter(
+        PaymentMethod.deleted_at.is_(None)  # Solo métodos no eliminados
+    ).offset(skip).limit(limit).all()
     return payment_methods
 
 @router.get("/active", response_model=List[PaymentMethodResponse])
 def read_active_payment_methods(
     db: Session = Depends(get_db)
 ):
-    """Obtener solo los métodos de pago activos"""
-    payment_methods = db.query(PaymentMethod).filter(PaymentMethod.is_active == True).all()
+    """Obtener solo los métodos de pago activos y no eliminados"""
+    payment_methods = db.query(PaymentMethod).filter(
+        PaymentMethod.is_active == True,
+        PaymentMethod.deleted_at.is_(None)  # Solo métodos no eliminados
+    ).all()
     return payment_methods
 
 @router.get("/{payment_method_id}", response_model=PaymentMethodResponse)
@@ -31,8 +36,11 @@ def read_payment_method(
     payment_method_id: int,
     db: Session = Depends(get_db)
 ):
-    """Obtener un método de pago por ID"""
-    payment_method = db.query(PaymentMethod).filter(PaymentMethod.id == payment_method_id).first()
+    """Obtener un método de pago por ID (no eliminado)"""
+    payment_method = db.query(PaymentMethod).filter(
+        PaymentMethod.id == payment_method_id,
+        PaymentMethod.deleted_at.is_(None)  # Solo métodos no eliminados
+    ).first()
     if not payment_method:
         raise HTTPException(status_code=404, detail="Método de pago no encontrado")
     return payment_method
@@ -58,7 +66,10 @@ def update_payment_method(
     current_user = Depends(get_current_active_admin)
 ):
     """Actualizar un método de pago (solo Admin)"""
-    db_payment_method = db.query(PaymentMethod).filter(PaymentMethod.id == payment_method_id).first()
+    db_payment_method = db.query(PaymentMethod).filter(
+        PaymentMethod.id == payment_method_id,
+        PaymentMethod.deleted_at.is_(None)  # Solo métodos no eliminados
+    ).first()
     if not db_payment_method:
         raise HTTPException(status_code=404, detail="Método de pago no encontrado")
     
@@ -76,12 +87,18 @@ def delete_payment_method(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_active_admin)
 ):
-    """Eliminar un método de pago (solo Admin)"""
-    db_payment_method = db.query(PaymentMethod).filter(PaymentMethod.id == payment_method_id).first()
+    """Eliminar un método de pago (solo Admin) - Soft delete"""
+    from datetime import datetime
+    
+    db_payment_method = db.query(PaymentMethod).filter(
+        PaymentMethod.id == payment_method_id,
+        PaymentMethod.deleted_at.is_(None)  # Solo métodos no eliminados
+    ).first()
     if not db_payment_method:
         raise HTTPException(status_code=404, detail="Método de pago no encontrado")
     
-    db.delete(db_payment_method)
+    # Soft delete: marcar como eliminado con timestamp
+    db_payment_method.deleted_at = datetime.now()
     db.commit()
     return None
 

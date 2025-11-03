@@ -52,10 +52,13 @@ def read_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_admin),
 ):
-    # Filtrar usuarios del mismo negocio
+    # Filtrar usuarios del mismo negocio y no eliminados
     users = (
         db.query(User)
-        .filter(User.business_id == current_user.business_id)
+        .filter(
+            User.business_id == current_user.business_id,
+            User.deleted_at.is_(None)  # Solo usuarios no eliminados
+        )
         .offset(skip)
         .limit(limit)
         .all()
@@ -72,11 +75,13 @@ def create_user(
 ):
     """Crear un nuevo usuario en el negocio del administrador actual"""
 
-    # Verificar si el email ya existe en este negocio
+    # Verificar si el email ya existe en este negocio (solo usuarios no eliminados)
     existing = (
         db.query(User)
         .filter(
-            User.email == user_data.email, User.business_id == current_user.business_id
+            User.email == user_data.email,
+            User.business_id == current_user.business_id,
+            User.deleted_at.is_(None)  # Solo usuarios no eliminados
         )
         .first()
     )
@@ -86,12 +91,13 @@ def create_user(
             detail="El email ya está registrado en tu negocio",
         )
 
-    # Verificar si el username ya existe en este negocio
+    # Verificar si el username ya existe en este negocio (solo usuarios no eliminados)
     existing = (
         db.query(User)
         .filter(
             User.username == user_data.username,
             User.business_id == current_user.business_id,
+            User.deleted_at.is_(None)  # Solo usuarios no eliminados
         )
         .first()
     )
@@ -132,8 +138,8 @@ def read_user(
         db.query(User)
         .filter(
             User.id == user_id,
-            User.business_id
-            == current_user.business_id,  # Solo usuarios del mismo negocio
+            User.business_id == current_user.business_id,  # Solo usuarios del mismo negocio
+            User.deleted_at.is_(None)  # Solo usuarios no eliminados
         )
         .first()
     )
@@ -155,8 +161,8 @@ def update_user(
         db.query(User)
         .filter(
             User.id == user_id,
-            User.business_id
-            == current_user.business_id,  # Solo usuarios del mismo negocio
+            User.business_id == current_user.business_id,  # Solo usuarios del mismo negocio
+            User.deleted_at.is_(None)  # Solo usuarios no eliminados
         )
         .first()
     )
@@ -188,12 +194,14 @@ def delete_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_admin),
 ):
+    from datetime import datetime
+    
     user = (
         db.query(User)
         .filter(
             User.id == user_id,
-            User.business_id
-            == current_user.business_id,  # Solo usuarios del mismo negocio
+            User.business_id == current_user.business_id,  # Solo usuarios del mismo negocio
+            User.deleted_at.is_(None)  # Solo usuarios no eliminados
         )
         .first()
     )
@@ -202,13 +210,14 @@ def delete_user(
             status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado"
         )
 
-    # No permitir eliminar el último administrador
+    # No permitir eliminar el último administrador (solo contar no eliminados)
     admin_count = (
         db.query(User)
         .filter(
             User.business_id == current_user.business_id,
             User.role == "admin",
             User.is_active == True,
+            User.deleted_at.is_(None)  # Solo administradores no eliminados
         )
         .count()
     )
@@ -219,6 +228,7 @@ def delete_user(
             detail="No puedes eliminar el último administrador del negocio",
         )
 
-    db.delete(user)
+    # Soft delete: marcar como eliminado con timestamp
+    user.deleted_at = datetime.now()
     db.commit()
     return None

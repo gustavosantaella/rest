@@ -22,7 +22,10 @@ def create_menu_category(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_manager),
 ):
-    db_category = db.query(MenuCategory).filter(MenuCategory.name == category.name).first()
+    db_category = db.query(MenuCategory).filter(
+        MenuCategory.name == category.name,
+        MenuCategory.deleted_at.is_(None)  # Solo categorías no eliminadas
+    ).first()
     if db_category:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -43,7 +46,9 @@ def read_menu_categories(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    categories = db.query(MenuCategory).order_by(MenuCategory.display_order).offset(skip).limit(limit).all()
+    categories = db.query(MenuCategory).filter(
+        MenuCategory.deleted_at.is_(None)  # Solo categorías no eliminadas
+    ).order_by(MenuCategory.display_order).offset(skip).limit(limit).all()
     return categories
 
 
@@ -54,7 +59,10 @@ def update_menu_category(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_manager),
 ):
-    category = db.query(MenuCategory).filter(MenuCategory.id == category_id).first()
+    category = db.query(MenuCategory).filter(
+        MenuCategory.id == category_id,
+        MenuCategory.deleted_at.is_(None)  # Solo categorías no eliminadas
+    ).first()
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -77,14 +85,20 @@ def delete_menu_category(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_manager),
 ):
-    category = db.query(MenuCategory).filter(MenuCategory.id == category_id).first()
+    from datetime import datetime
+    
+    category = db.query(MenuCategory).filter(
+        MenuCategory.id == category_id,
+        MenuCategory.deleted_at.is_(None)  # Solo categorías no eliminadas
+    ).first()
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Categoría no encontrada",
         )
     
-    db.delete(category)
+    # Soft delete: marcar como eliminado con timestamp
+    category.deleted_at = datetime.now()
     db.commit()
     return None
 
@@ -96,8 +110,11 @@ def create_menu_item(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_manager),
 ):
-    # Verificar que la categoría existe
-    category = db.query(MenuCategory).filter(MenuCategory.id == menu_item.category_id).first()
+    # Verificar que la categoría existe y no está eliminada
+    category = db.query(MenuCategory).filter(
+        MenuCategory.id == menu_item.category_id,
+        MenuCategory.deleted_at.is_(None)  # Solo categorías no eliminadas
+    ).first()
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -145,7 +162,7 @@ def read_menu_items(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    query = db.query(MenuItem)
+    query = db.query(MenuItem).filter(MenuItem.deleted_at.is_(None))  # Solo items no eliminados
     
     if category_id:
         query = query.filter(MenuItem.category_id == category_id)
@@ -164,7 +181,8 @@ def read_featured_menu_items(
 ):
     items = db.query(MenuItem).filter(
         MenuItem.is_featured == True,
-        MenuItem.is_available == True
+        MenuItem.is_available == True,
+        MenuItem.deleted_at.is_(None)  # Solo items no eliminados
     ).all()
     return [_build_menu_item_response(item, db) for item in items]
 
@@ -175,7 +193,10 @@ def read_menu_item(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    item = db.query(MenuItem).filter(MenuItem.id == item_id).first()
+    item = db.query(MenuItem).filter(
+        MenuItem.id == item_id,
+        MenuItem.deleted_at.is_(None)  # Solo items no eliminados
+    ).first()
     if not item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -191,7 +212,10 @@ def update_menu_item(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_manager),
 ):
-    item = db.query(MenuItem).filter(MenuItem.id == item_id).first()
+    item = db.query(MenuItem).filter(
+        MenuItem.id == item_id,
+        MenuItem.deleted_at.is_(None)  # Solo items no eliminados
+    ).first()
     if not item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -228,14 +252,20 @@ def delete_menu_item(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_manager),
 ):
-    item = db.query(MenuItem).filter(MenuItem.id == item_id).first()
+    from datetime import datetime
+    
+    item = db.query(MenuItem).filter(
+        MenuItem.id == item_id,
+        MenuItem.deleted_at.is_(None)  # Solo items no eliminados
+    ).first()
     if not item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Item del menú no encontrado",
         )
     
-    db.delete(item)
+    # Soft delete: marcar como eliminado con timestamp
+    item.deleted_at = datetime.now()
     db.commit()
     return None
 

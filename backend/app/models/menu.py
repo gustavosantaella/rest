@@ -23,6 +23,7 @@ class MenuCategory(Base):
     display_order = Column(Integer, default=0)  # Orden de visualización
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    deleted_at = Column(DateTime(timezone=True), nullable=True)  # Soft delete
     
     menu_items = relationship("MenuItem", back_populates="category")
 
@@ -48,6 +49,7 @@ class MenuItem(Base):
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    deleted_at = Column(DateTime(timezone=True), nullable=True)  # Soft delete
     
     category = relationship("MenuCategory", back_populates="menu_items")
     # Ingredientes necesarios para preparar este platillo

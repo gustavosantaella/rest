@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { User } from '../../core/models/user.model';
 import { TooltipDirective } from '../../shared/directives/tooltip.directive';
 
@@ -17,6 +18,7 @@ export class ProfileComponent implements OnInit {
   private profileService = inject(ProfileService);
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
+  private notificationService = inject(NotificationService);
   
   currentUser: User | null = null;
   profileForm!: FormGroup;
@@ -86,14 +88,14 @@ export class ProfileComponent implements OnInit {
     this.profileService.updateMyProfile(this.profileForm.value).subscribe({
       next: (user) => {
         this.savingProfile = false;
-        alert('Perfil actualizado exitosamente');
+        this.notificationService.success('Perfil actualizado exitosamente');
         // Recargar el usuario actual
         this.authService.setToken(this.authService.getToken()!);
         window.location.reload();
       },
       error: (err) => {
         this.savingProfile = false;
-        alert('Error al actualizar perfil: ' + (err.error?.detail || 'Error desconocido'));
+        this.notificationService.error('Error al actualizar perfil: ' + (err.error?.detail || 'Error desconocido'));
       }
     });
   }
@@ -109,12 +111,14 @@ export class ProfileComponent implements OnInit {
       next: (response) => {
         this.savingPassword = false;
         this.passwordForm.reset();
-        alert('Contraseña cambiada exitosamente. Por seguridad, debes iniciar sesión nuevamente.');
-        this.authService.logout();
+        this.notificationService.success('Contraseña cambiada exitosamente. Por seguridad, debes iniciar sesión nuevamente.');
+        setTimeout(() => {
+          this.authService.logout();
+        }, 2000);
       },
       error: (err) => {
         this.savingPassword = false;
-        alert('Error: ' + (err.error?.detail || 'Error desconocido'));
+        this.notificationService.error('Error: ' + (err.error?.detail || 'Error desconocido'));
       }
     });
   }

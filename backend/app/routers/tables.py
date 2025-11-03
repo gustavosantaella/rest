@@ -16,7 +16,10 @@ def create_table(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_manager),
 ):
-    db_table = db.query(Table).filter(Table.number == table.number).first()
+    db_table = db.query(Table).filter(
+        Table.number == table.number,
+        Table.deleted_at.is_(None)  # Solo mesas no eliminadas
+    ).first()
     if db_table:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -37,7 +40,9 @@ def read_tables(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    tables = db.query(Table).offset(skip).limit(limit).all()
+    tables = db.query(Table).filter(
+        Table.deleted_at.is_(None)  # Solo mesas no eliminadas
+    ).offset(skip).limit(limit).all()
     return tables
 
 
@@ -47,7 +52,10 @@ def read_table(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    table = db.query(Table).filter(Table.id == table_id).first()
+    table = db.query(Table).filter(
+        Table.id == table_id,
+        Table.deleted_at.is_(None)  # Solo mesas no eliminadas
+    ).first()
     if not table:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Mesa no encontrada"
@@ -62,7 +70,10 @@ def update_table(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    table = db.query(Table).filter(Table.id == table_id).first()
+    table = db.query(Table).filter(
+        Table.id == table_id,
+        Table.deleted_at.is_(None)  # Solo mesas no eliminadas
+    ).first()
     if not table:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Mesa no encontrada"
@@ -84,12 +95,18 @@ def delete_table(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_manager),
 ):
-    table = db.query(Table).filter(Table.id == table_id).first()
+    from datetime import datetime
+    
+    table = db.query(Table).filter(
+        Table.id == table_id,
+        Table.deleted_at.is_(None)  # Solo mesas no eliminadas
+    ).first()
     if not table:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Mesa no encontrada"
         )
 
-    db.delete(table)
+    # Soft delete: marcar como eliminado con timestamp
+    table.deleted_at = datetime.now()
     db.commit()
     return None
