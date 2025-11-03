@@ -56,3 +56,15 @@ async def get_current_active_manager(
         )
     return current_user
 
+
+async def get_current_active_chef(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    """Cocineros pueden ver órdenes"""
+    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER, UserRole.CHEF]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes permisos suficientes"
+        )
+    return current_user
+

@@ -127,6 +127,11 @@ frontend/
 - Ver órdenes
 - Cerrar cuentas
 
+### Cocinero (Nuevo)
+- Ver órdenes de cocina
+- Actualizar estado de órdenes (Pendiente → En Progreso → Completada)
+- Sin acceso a gestión de inventario o usuarios
+
 ## 🚀 Flujo de Usuario
 
 1. **Login** → Usuario ingresa credenciales

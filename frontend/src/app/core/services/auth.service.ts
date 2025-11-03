@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, tap, catchError, of } from 'rxjs';
+import { BehaviorSubject, Observable, tap, catchError, of, timeout } from 'rxjs';
 import { User, LoginRequest, LoginResponse } from '../models/user.model';
 import { environment } from '../../../environments/environment';
 
@@ -57,15 +57,23 @@ export class AuthService {
     if (this.isAuthenticated()) {
       this.http.get<User>(`${environment.apiUrl}/users/me`)
         .pipe(
-          catchError((error: HttpErrorResponse) => {
+          timeout(10000), // Timeout de 10 segundos
+          catchError((error: any) => {
             // Solo hacer logout si el token es inválido (401 o 403)
             if (error.status === 401 || error.status === 403) {
-              console.log('Token inválido o expirado');
+              console.log('🔐 Token inválido o expirado - Cerrando sesión');
               localStorage.removeItem(this.TOKEN_KEY);
               this.currentUserSubject.next(null);
+            } else if (error.status === 0 || error.name === 'TimeoutError') {
+              // Error de red o backend no disponible
+              console.warn('⚠️ Backend no disponible. Manteniendo sesión local.');
+              console.warn('💡 Asegúrate de que el backend esté corriendo: python run.py');
+            } else if (error.status >= 500) {
+              // Error del servidor
+              console.warn('⚠️ Error del servidor. Manteniendo sesión local.');
             } else {
-              // Otros errores (red, servidor, etc.) no desloguean
-              console.error('Error cargando usuario, pero manteniendo sesión:', error.status);
+              // Otros errores
+              console.warn('⚠️ Error al cargar usuario:', error.status || 'Red no disponible');
             }
             return of(null);
           })

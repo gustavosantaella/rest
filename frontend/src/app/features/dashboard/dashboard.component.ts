@@ -55,6 +55,9 @@ export class DashboardComponent implements OnInit {
           .filter(o => o.status === OrderStatus.PAID)
           .reduce((sum, o) => sum + o.total, 0);
         this.recentOrders = orders.slice(0, 5);
+      },
+      error: (err) => {
+        console.error('Error cargando órdenes:', err);
       }
     });
     
@@ -62,6 +65,9 @@ export class DashboardComponent implements OnInit {
     this.tableService.getTables().subscribe({
       next: (tables) => {
         this.stats.availableTables = tables.filter(t => t.status === TableStatus.AVAILABLE).length;
+      },
+      error: (err) => {
+        console.error('Error cargando mesas:', err);
       }
     });
     
@@ -69,6 +75,10 @@ export class DashboardComponent implements OnInit {
     this.productService.getProducts().subscribe({
       next: (products) => {
         this.stats.lowStockProducts = products.filter(p => p.stock <= p.min_stock).length;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error cargando productos:', err);
         this.loading = false;
       }
     });

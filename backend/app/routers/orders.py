@@ -8,7 +8,7 @@ from ..models.product import Product
 from ..models.table import Table, TableStatus
 from ..models.user import User
 from ..schemas.order import OrderCreate, OrderUpdate, OrderResponse
-from ..utils.dependencies import get_current_user
+from ..utils.dependencies import get_current_user, get_current_active_chef
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -88,7 +88,7 @@ def read_orders(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_active_chef)  # Chef puede ver órdenes
 ):
     orders = db.query(Order).offset(skip).limit(limit).all()
     return orders
@@ -98,7 +98,7 @@ def read_orders(
 def read_order(
     order_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_active_chef)  # Chef puede ver órdenes
 ):
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:

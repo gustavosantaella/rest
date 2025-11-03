@@ -48,6 +48,7 @@ Sistema completo de gestión para restaurantes, kioskos y locales comerciales. D
 - **MANAGER**: Gestión de inventario, mesas y personal
 - **WAITER**: Gestión de órdenes y mesas
 - **CASHIER**: Procesamiento de pagos
+- **CHEF**: Visualización de órdenes de cocina (¡NUEVO!)
 
 ## 🚀 Inicio Rápido
 

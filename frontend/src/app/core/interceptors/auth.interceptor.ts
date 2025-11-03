@@ -25,9 +25,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (error.status === 401 || error.status === 403) {
         // Solo hacer logout si no estamos ya en login
         if (!req.url.includes('/auth/login')) {
-          console.log('Token inválido detectado en interceptor');
+          console.log('🔐 Token inválido detectado - Redirigiendo a login');
           authService.logout();
         }
+      } else if (error.status === 0) {
+        // Error de red - no hacer logout
+        console.warn('⚠️ Error de red detectado. Verifica que el backend esté corriendo en:', req.url);
+      } else if (error.status >= 500) {
+        // Error del servidor - no hacer logout
+        console.error('⚠️ Error del servidor:', error.status);
       }
       return throwError(() => error);
     })

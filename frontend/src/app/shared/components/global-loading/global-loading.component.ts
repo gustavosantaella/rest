@@ -9,7 +9,7 @@ import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.comp
   imports: [CommonModule, LoadingSpinnerComponent],
   template: `
     <app-loading-spinner 
-      [show]="loading$ | async"
+      [show]="(loading$ | async) || false"
       [isOverlay]="true"
       size="lg"
       message="Procesando..."

@@ -126,6 +126,7 @@ backend/
 - **MANAGER**: Gestión de inventario, mesas y usuarios
 - **WAITER**: Gestión de órdenes y mesas
 - **CASHIER**: Gestión de pagos y cierre de cuentas
+- **CHEF**: Visualización de órdenes de cocina
 
 ## 📝 Endpoints Principales
 

@@ -9,6 +9,7 @@ class UserRole(str, enum.Enum):
     MANAGER = "manager"
     WAITER = "waiter"
     CASHIER = "cashier"
+    CHEF = "chef"  # Cocinero
 
 
 class User(Base):

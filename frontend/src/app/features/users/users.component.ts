@@ -33,14 +33,16 @@ export class UsersComponent implements OnInit {
     [UserRole.ADMIN]: 'Administrador',
     [UserRole.MANAGER]: 'Gerente',
     [UserRole.WAITER]: 'Mesero',
-    [UserRole.CASHIER]: 'Cajero'
+    [UserRole.CASHIER]: 'Cajero',
+    [UserRole.CHEF]: 'Cocinero'
   };
   
   roleDescriptions: Record<UserRole, string> = {
     [UserRole.ADMIN]: 'Acceso total al sistema',
     [UserRole.MANAGER]: 'Gestión de inventario y personal',
     [UserRole.WAITER]: 'Gestión de órdenes y mesas',
-    [UserRole.CASHIER]: 'Gestión de pagos'
+    [UserRole.CASHIER]: 'Gestión de pagos',
+    [UserRole.CHEF]: 'Ver órdenes de cocina'
   };
   
   constructor() {
@@ -157,7 +159,8 @@ export class UsersComponent implements OnInit {
       [UserRole.ADMIN]: 'badge-danger',
       [UserRole.MANAGER]: 'badge-warning',
       [UserRole.WAITER]: 'badge-info',
-      [UserRole.CASHIER]: 'badge-success'
+      [UserRole.CASHIER]: 'badge-success',
+      [UserRole.CHEF]: 'bg-orange-100 text-orange-800'
     };
     return classes[role];
   }
@@ -168,9 +171,11 @@ export class UsersComponent implements OnInit {
       return true;
     }
     
-    // Manager puede gestionar a meseros y cajeros
+    // Manager puede gestionar a meseros, cajeros y cocineros
     if (this.currentUser?.role === UserRole.MANAGER) {
-      return user.role === UserRole.WAITER || user.role === UserRole.CASHIER;
+      return user.role === UserRole.WAITER || 
+             user.role === UserRole.CASHIER || 
+             user.role === UserRole.CHEF;
     }
     
     return false;
