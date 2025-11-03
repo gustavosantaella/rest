@@ -40,5 +40,12 @@ export class ConfigurationService {
   deletePartner(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/partners/${id}`);
   }
+
+  // QR Code
+  downloadQRCode(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/qr-code`, {
+      responseType: 'blob'
+    });
+  }
 }
 

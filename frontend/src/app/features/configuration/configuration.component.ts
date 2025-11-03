@@ -17,7 +17,7 @@ import { TooltipDirective } from '../../shared/directives/tooltip.directive';
   styleUrls: ['./configuration.component.scss']
 })
 export class ConfigurationComponent implements OnInit {
-  private configService = inject(ConfigurationService);
+  public configService = inject(ConfigurationService);
   private userService = inject(UserService);
   private paymentMethodService = inject(PaymentMethodService);
   private fb = inject(FormBuilder);
@@ -345,6 +345,34 @@ export class ConfigurationComponent implements OnInit {
       'euros': '€'
     };
     return icons[type] || '💰';
+  }
+
+  downloadQRCode(): void {
+    if (!this.configuration?.slug) {
+      alert('Primero debes guardar la configuración con un slug válido.');
+      return;
+    }
+
+    this.configService.downloadQRCode().subscribe({
+      next: (blob) => {
+        // Crear URL temporal para el blob
+        const url = window.URL.createObjectURL(blob);
+        
+        // Crear elemento <a> temporal para descargar
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `qr-catalogo-${this.configuration?.slug}.png`;
+        document.body.appendChild(link);
+        link.click();
+        
+        // Limpiar
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        alert('Error al descargar el código QR: ' + (err.error?.detail || 'Error desconocido'));
+      }
+    });
   }
 }
 

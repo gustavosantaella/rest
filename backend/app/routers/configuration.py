@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List
 import re
+import qrcode
+from io import BytesIO
 from ..database import get_db
 from ..models.configuration import BusinessConfiguration, Partner
 from ..models.user import User, UserRole
@@ -107,6 +110,61 @@ def update_business_configuration(
     db.commit()
     db.refresh(config)
     return _build_config_response(config, db)
+
+
+@router.get("/qr-code")
+def get_catalog_qr_code(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_admin),
+):
+    """
+    Genera un código QR para el catálogo público del negocio.
+    Requiere autenticación de administrador.
+    """
+    config = db.query(BusinessConfiguration).first()
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No se ha configurado el negocio aún.",
+        )
+    
+    if not config.slug:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El negocio no tiene un slug configurado. Actualiza la configuración primero.",
+        )
+    
+    # URL del catálogo público (usar la URL del frontend)
+    # En producción, esto debería ser configurable
+    frontend_url = "http://localhost:4200"
+    catalog_url = f"{frontend_url}/catalog/{config.slug}"
+    
+    # Generar código QR
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(catalog_url)
+    qr.make(fit=True)
+    
+    # Crear imagen
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Guardar en BytesIO
+    buf = BytesIO()
+    img.save(buf, format='PNG')
+    buf.seek(0)
+    
+    # Retornar como imagen
+    return StreamingResponse(
+        buf,
+        media_type="image/png",
+        headers={
+            "Content-Disposition": f'attachment; filename="qr-{config.slug}.png"'
+        }
+    )
 
 
 # SOCIOS
@@ -233,6 +291,7 @@ def _build_config_response(config: BusinessConfiguration, db: Session) -> Busine
     return BusinessConfigurationResponse(
         id=config.id,
         business_name=config.business_name,
+        slug=config.slug,
         legal_name=config.legal_name,
         rif=config.rif,
         phone=config.phone,
