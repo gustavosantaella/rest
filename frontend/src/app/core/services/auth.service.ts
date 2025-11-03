@@ -54,11 +54,18 @@ export class AuthService {
   }
   
   private loadCurrentUser(): void {
+    const token = this.getToken();
+    console.log('🔐 loadCurrentUser() - Token existe:', !!token);
+    
     if (this.isAuthenticated()) {
+      console.log('📡 Intentando cargar usuario desde:', `${environment.apiUrl}/users/me`);
+      
       this.http.get<User>(`${environment.apiUrl}/users/me`)
         .pipe(
           timeout(10000), // Timeout de 10 segundos
           catchError((error: any) => {
+            console.error('❌ Error al cargar usuario:', error);
+            
             // Solo hacer logout si el token es inválido (401 o 403)
             if (error.status === 401 || error.status === 403) {
               console.log('🔐 Token inválido o expirado - Cerrando sesión');
@@ -80,11 +87,16 @@ export class AuthService {
         )
         .subscribe({
           next: user => {
+            console.log('✅ Usuario cargado:', user);
             if (user) {
               this.currentUserSubject.next(user);
+            } else {
+              console.warn('⚠️ Usuario es null - no se actualizará currentUserSubject');
             }
           }
         });
+    } else {
+      console.log('⚠️ No hay token - Usuario no autenticado');
     }
   }
   

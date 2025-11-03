@@ -2,12 +2,14 @@ import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
-import { AuthService } from '../services/auth.service';
+
+const TOKEN_KEY = 'access_token';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
   const router = inject(Router);
-  const token = authService.getToken();
+  
+  // Obtener token directamente de localStorage para evitar dependencia circular
+  const token = localStorage.getItem(TOKEN_KEY);
   
   // Agregar token si existe
   if (token) {
@@ -26,7 +28,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         // Solo hacer logout si no estamos ya en login
         if (!req.url.includes('/auth/login')) {
           console.log('🔐 Token inválido detectado - Redirigiendo a login');
-          authService.logout();
+          // Limpiar token y redirigir sin inyectar AuthService (evita dependencia circular)
+          localStorage.removeItem(TOKEN_KEY);
+          router.navigate(['/login']);
         }
       } else if (error.status === 0) {
         // Error de red - no hacer logout

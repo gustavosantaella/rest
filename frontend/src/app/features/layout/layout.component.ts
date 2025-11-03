@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { Title } from '@angular/platform-browser';
@@ -18,6 +18,7 @@ export class LayoutComponent implements OnInit {
   authService = inject(AuthService); // Exponer para usar en template
   private configService = inject(ConfigurationService);
   private titleService = inject(Title);
+  private cdr = inject(ChangeDetectorRef);
   
   currentUser: User | null = null;
   businessName: string = 'Sistema de Gestión';
@@ -25,13 +26,17 @@ export class LayoutComponent implements OnInit {
   sidebarOpen = true;
   configDropdownOpen = false;
   
-  constructor() {
-    this.authService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-    });
-  }
+  constructor() {}
   
   ngOnInit(): void {
+    // Suscribirse al usuario actual
+    this.authService.currentUser$.subscribe(user => {
+      console.log('👤 Layout - Usuario actualizado:', user);
+      this.currentUser = user;
+      // Marcar para verificar cambios (más seguro que detectChanges)
+      this.cdr.markForCheck();
+    });
+    
     this.loadBusinessName();
   }
   
@@ -69,6 +74,18 @@ export class LayoutComponent implements OnInit {
   
   toggleConfigDropdown(): void {
     this.configDropdownOpen = !this.configDropdownOpen;
+  }
+  
+  isAdmin(): boolean {
+    const result = this.currentUser?.role === 'admin';
+    console.log('🔒 isAdmin() ->', result, '| currentUser:', this.currentUser);
+    return result;
+  }
+  
+  isAdminOrManager(): boolean {
+    const result = this.currentUser?.role === 'admin' || this.currentUser?.role === 'manager';
+    console.log('🔒 isAdminOrManager() ->', result, '| currentUser:', this.currentUser);
+    return result;
   }
   
   logout(): void {
