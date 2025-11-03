@@ -5,9 +5,14 @@
       <h1 class="text-3xl font-bold text-gray-800">Gestión de Mesas</h1>
       <p class="text-gray-600 mt-1">Administra las mesas del restaurante</p>
     </div>
-    <button (click)="openModal()" class="btn-primary">
-      + Nueva Mesa
-    </button>
+    <div class="flex space-x-3">
+      <button (click)="loadTables()" class="btn-secondary" title="Actualizar estado de mesas">
+        🔄 Actualizar
+      </button>
+      <button (click)="openModal()" class="btn-primary">
+        + Nueva Mesa
+      </button>
+    </div>
   </div>
   
   <!-- Loading State -->
@@ -48,8 +53,8 @@
       
       <!-- Status Selector -->
       <select
-        [value]="table.status"
-        (change)="updateTableStatus(table, $any($event.target).value)"
+        [(ngModel)]="table.status"
+        (ngModelChange)="updateTableStatus(table, $event)"
         class="w-full px-3 py-2 border-2 rounded-lg font-medium cursor-pointer focus:ring-2 focus:ring-primary-500 focus:outline-none"
       >
         <option *ngFor="let status of tableStatuses" [value]="status">

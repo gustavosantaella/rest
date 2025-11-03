@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -13,7 +13,7 @@ import { TooltipDirective } from '../../shared/directives/tooltip.directive';
   templateUrl: './tables.component.html',
   styleUrls: ['./tables.component.scss']
 })
-export class TablesComponent implements OnInit {
+export class TablesComponent implements OnInit, OnDestroy {
   private tableService = inject(TableService);
   private fb = inject(FormBuilder);
   
@@ -22,6 +22,7 @@ export class TablesComponent implements OnInit {
   editingTable: Table | null = null;
   tableForm!: FormGroup;
   loading = true;
+  private refreshInterval: any;
   
   tableStatuses = Object.values(TableStatus);
   statusLabels: Record<TableStatus, string> = {
@@ -37,6 +38,19 @@ export class TablesComponent implements OnInit {
   
   ngOnInit(): void {
     this.loadTables();
+    
+    // Actualizar cada 10 segundos para reflejar cambios de órdenes
+    this.refreshInterval = setInterval(() => {
+      if (!this.showModal) { // Solo refrescar si no hay modal abierto
+        this.loadTables();
+      }
+    }, 10000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
   
   initForm(): void {
@@ -48,11 +62,22 @@ export class TablesComponent implements OnInit {
   }
   
   loadTables(): void {
-    this.loading = true;
+    const isInitialLoad = this.loading;
+    if (isInitialLoad) {
+      this.loading = true;
+    }
+    
     this.tableService.getTables().subscribe({
       next: (tables) => {
         this.tables = tables;
-        this.loading = false;
+        if (isInitialLoad) {
+          this.loading = false;
+        }
+      },
+      error: () => {
+        if (isInitialLoad) {
+          this.loading = false;
+        }
       }
     });
   }
