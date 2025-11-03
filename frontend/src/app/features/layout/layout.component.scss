@@ -1,2 +1,20 @@
 // Additional styles if needed
 
+// Prevent horizontal overflow
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+// Ensure sidebar doesn't cause overflow
+aside {
+  max-width: 100vw;
+}
+
+// Ensure main content doesn't cause overflow
+main {
+  max-width: 100%;
+  width: 100%;
+}
