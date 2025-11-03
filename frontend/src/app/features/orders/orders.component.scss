@@ -1,2 +1,89 @@
-// Additional styles if needed
+// ========== ESTILOS PARA TABLERO KANBAN ==========
+
+.kanban-column {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.kanban-column-header {
+  padding: 1rem;
+  border: 2px solid transparent;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.kanban-column-body {
+  padding: 1rem;
+  min-height: 300px;
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+    
+    &:hover {
+      background: #555;
+    }
+  }
+}
+
+.kanban-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: move;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  &.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+  }
+}
+
+// ========== ANIMACIONES ==========
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kanban-card {
+  animation: fadeIn 0.3s ease;
+}
+
+// ========== RESPONSIVE ==========
+
+@media (max-width: 768px) {
+  .kanban-column {
+    min-width: 280px;
+  }
+  
+  .kanban-column-body {
+    max-height: 400px;
+  }
+}
 

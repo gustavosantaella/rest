@@ -32,8 +32,8 @@ class Order(Base):
     table_id = Column(Integer, ForeignKey("tables.id"), nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # Mesero que atiende
     
-    status = Column(Enum(OrderStatus), default=OrderStatus.PENDING, nullable=False)
-    payment_method = Column(Enum(PaymentMethod), nullable=True)  # Deprecated, usar payments
+    status = Column(String, default=OrderStatus.PENDING.value, nullable=False)  # Use string to store enum value
+    payment_method = Column(String, nullable=True)  # Deprecated, usar payments
     payment_status = Column(String, default="pending", nullable=False)  # pending, partial, paid
     
     subtotal = Column(Float, default=0)

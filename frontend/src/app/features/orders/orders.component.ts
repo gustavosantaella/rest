@@ -57,6 +57,12 @@ export class OrdersComponent implements OnInit {
   paymentForm!: FormGroup;
   loading = true;
   
+  // Vista actual: 'list' | 'cards' | 'board'
+  currentView: 'list' | 'cards' | 'board' = 'list';
+  
+  // Drag & Drop
+  draggedOrder: Order | null = null;
+  
   orderStatuses = Object.values(OrderStatus);
   paymentMethods = Object.values(PaymentMethod);
   
@@ -695,6 +701,60 @@ export class OrdersComponent implements OnInit {
         this.notificationService.error('Error al cambiar estado: ' + (err.error?.detail || 'Error desconocido'));
       }
     });
+  }
+  
+  // ========== MÉTODOS PARA VISTAS ==========
+  
+  setView(view: 'list' | 'cards' | 'board'): void {
+    this.currentView = view;
+  }
+  
+  getOrdersByStatus(status: OrderStatus): Order[] {
+    return this.orders.filter(order => order.status === status);
+  }
+  
+  // ========== MÉTODOS PARA DRAG & DROP ==========
+  
+  onDragStart(event: DragEvent, order: Order): void {
+    this.draggedOrder = order;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/html', '');
+    }
+  }
+  
+  onDragOver(event: DragEvent): void {
+    if (event.preventDefault) {
+      event.preventDefault();
+    }
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+    return;
+  }
+  
+  onDrop(event: DragEvent, newStatus: OrderStatus): void {
+    if (event.stopPropagation) {
+      event.stopPropagation();
+    }
+    event.preventDefault();
+    
+    if (this.draggedOrder && this.draggedOrder.status !== newStatus) {
+      if (!this.canChangeOrderStatus()) {
+        this.notificationService.warning('No tienes permiso para cambiar el estado de órdenes');
+        this.draggedOrder = null;
+        return;
+      }
+      
+      this.quickChangeStatus(this.draggedOrder, newStatus);
+    }
+    
+    this.draggedOrder = null;
+    return;
+  }
+  
+  onDragEnd(): void {
+    this.draggedOrder = null;
   }
 }
 

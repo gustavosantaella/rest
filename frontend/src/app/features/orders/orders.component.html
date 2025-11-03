@@ -1,13 +1,55 @@
 <div class="space-y-6">
   <!-- Header -->
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between flex-wrap gap-4">
     <div>
       <h1 class="text-3xl font-bold text-gray-800">Órdenes</h1>
       <p class="text-gray-600 mt-1">Gestión de pedidos y cuentas</p>
     </div>
-    <button *ngIf="canCreateOrders()" (click)="openModal()" class="btn-primary">
-      + Nueva Orden
-    </button>
+    <div class="flex items-center space-x-3">
+      <!-- Selector de Vista -->
+      <div class="flex bg-gray-100 rounded-lg p-1">
+        <button 
+          (click)="setView('list')" 
+          [class.bg-white]="currentView === 'list'"
+          [class.shadow]="currentView === 'list'"
+          class="px-4 py-2 rounded-md transition-all duration-200 flex items-center space-x-2"
+          title="Vista de Lista"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+          </svg>
+          <span class="hidden sm:inline">Lista</span>
+        </button>
+        <button 
+          (click)="setView('cards')" 
+          [class.bg-white]="currentView === 'cards'"
+          [class.shadow]="currentView === 'cards'"
+          class="px-4 py-2 rounded-md transition-all duration-200 flex items-center space-x-2"
+          title="Vista de Tarjetas"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+          </svg>
+          <span class="hidden sm:inline">Tarjetas</span>
+        </button>
+        <button 
+          (click)="setView('board')" 
+          [class.bg-white]="currentView === 'board'"
+          [class.shadow]="currentView === 'board'"
+          class="px-4 py-2 rounded-md transition-all duration-200 flex items-center space-x-2"
+          title="Vista de Tablero"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
+          </svg>
+          <span class="hidden sm:inline">Tablero</span>
+        </button>
+      </div>
+      
+      <button *ngIf="canCreateOrders()" (click)="openModal()" class="btn-primary">
+        + Nueva Orden
+      </button>
+    </div>
   </div>
   
   <!-- Loading State -->
@@ -15,8 +57,8 @@
     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
   </div>
   
-  <!-- Orders Table -->
-  <div *ngIf="!loading" class="card">
+  <!-- VISTA DE LISTA (Tabla) -->
+  <div *ngIf="!loading && currentView === 'list'" class="card">
     <div class="table-container">
       <table class="table">
         <thead>
@@ -146,6 +188,305 @@
       
       <div *ngIf="orders.length === 0" class="text-center py-12 text-gray-500">
         No hay órdenes registradas
+      </div>
+    </div>
+  </div>
+  
+  <!-- VISTA DE CARDS (Tarjetas) -->
+  <div *ngIf="!loading && currentView === 'cards'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div *ngFor="let order of orders" class="card hover:shadow-lg transition-shadow">
+      <!-- Header de la Card -->
+      <div class="flex items-center justify-between mb-4 pb-3 border-b">
+        <div>
+          <h3 class="text-xl font-bold text-gray-800">#{{ order.id }}</h3>
+          <p class="text-sm text-gray-600">Mesa {{ getTableNumber(order.table_id) }}</p>
+        </div>
+        <span [class]="'badge ' + getStatusClass(order.status)">
+          {{ statusLabels[order.status] }}
+        </span>
+      </div>
+      
+      <!-- Items de la orden -->
+      <div class="mb-4">
+        <p class="text-sm font-medium text-gray-700 mb-2">Items ({{ order.items.length }})</p>
+        <div class="space-y-1">
+          <div *ngFor="let item of order.items.slice(0, 3)" class="text-sm text-gray-600 flex justify-between">
+            <span>{{ item.quantity }}x {{ getProductName(item.product_id) }}</span>
+            <span>${{ item.subtotal.toFixed(2) }}</span>
+          </div>
+          <p *ngIf="order.items.length > 3" class="text-xs text-gray-500 italic">
+            +{{ order.items.length - 3 }} más...
+          </p>
+        </div>
+      </div>
+      
+      <!-- Total y Estado de Pago -->
+      <div class="flex items-center justify-between mb-4 py-3 border-t border-b bg-gray-50 -mx-4 px-4">
+        <div>
+          <p class="text-xs text-gray-600">Total</p>
+          <p class="text-2xl font-bold text-green-600">${{ order.total.toFixed(2) }}</p>
+        </div>
+        <span [class]="'badge text-xs ' + getPaymentStatusBadge(order.payment_status)">
+          {{ getPaymentStatusLabel(order.payment_status) }}
+        </span>
+      </div>
+      
+      <!-- Fecha y Pagos -->
+      <div class="mb-4 space-y-1">
+        <p class="text-xs text-gray-600">
+          📅 {{ order.created_at | date:'short' }}
+        </p>
+        <p *ngIf="order.payments && order.payments.length > 0" class="text-xs text-gray-600">
+          💳 {{ order.payments.length }} método{{ order.payments.length > 1 ? 's' : '' }} de pago
+        </p>
+      </div>
+      
+      <!-- Acciones -->
+      <div class="grid grid-cols-2 gap-2">
+        <button 
+          (click)="viewOrderDetail(order)"
+          class="btn-secondary text-sm py-2"
+        >
+          Ver Detalle
+        </button>
+        <button 
+          *ngIf="canPayOrder(order) && canProcessPayments()"
+          (click)="openPaymentModal(order)"
+          class="btn-success text-sm py-2"
+        >
+          💳 Pagar
+        </button>
+        <button 
+          *ngIf="canEditOrder(order) && canEditOrders()"
+          (click)="openEditModal(order)"
+          class="btn-primary text-sm py-2"
+        >
+          ✏️ Editar
+        </button>
+        <button 
+          *ngIf="canDeleteOrders()"
+          (click)="deleteOrder(order)"
+          class="btn-danger text-sm py-2"
+        >
+          🗑️ Eliminar
+        </button>
+      </div>
+    </div>
+    
+    <div *ngIf="orders.length === 0" class="col-span-full text-center py-12 text-gray-500">
+      No hay órdenes registradas
+    </div>
+  </div>
+  
+  <!-- VISTA DE TABLERO (Kanban) -->
+  <div *ngIf="!loading && currentView === 'board'" class="overflow-x-auto">
+    <div class="flex space-x-4 min-w-max pb-4">
+      <!-- Columna PENDIENTE -->
+      <div 
+        class="kanban-column flex-shrink-0 w-80"
+        (dragover)="onDragOver($event)"
+        (drop)="onDrop($event, OrderStatus.PENDING)"
+      >
+        <div class="kanban-column-header bg-yellow-100 border-yellow-300">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl">📝</span>
+            <div>
+              <h3 class="font-bold text-gray-800">Pendiente</h3>
+              <p class="text-xs text-gray-600">{{ getOrdersByStatus(OrderStatus.PENDING).length }} orden(es)</p>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-column-body">
+          <div 
+            *ngFor="let order of getOrdersByStatus(OrderStatus.PENDING)"
+            [draggable]="canChangeOrderStatus()"
+            (dragstart)="onDragStart($event, order)"
+            (dragend)="onDragEnd()"
+            class="kanban-card"
+            [class.dragging]="draggedOrder?.id === order.id"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-lg">#{{ order.id }}</span>
+              <button 
+                (click)="viewOrderDetail(order)"
+                class="text-blue-600 hover:text-blue-800"
+                title="Ver detalle"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+            </div>
+            <p class="text-sm text-gray-600 mb-2">Mesa {{ getTableNumber(order.table_id) }}</p>
+            <p class="text-sm text-gray-600 mb-3">{{ order.items.length }} item(s)</p>
+            <div class="flex items-center justify-between pt-3 border-t">
+              <span class="text-xl font-bold text-green-600">${{ order.total.toFixed(2) }}</span>
+              <span [class]="'badge text-xs ' + getPaymentStatusBadge(order.payment_status)">
+                {{ getPaymentStatusLabel(order.payment_status) }}
+              </span>
+            </div>
+          </div>
+          <div *ngIf="getOrdersByStatus(OrderStatus.PENDING).length === 0" class="text-center text-gray-400 py-8">
+            No hay órdenes pendientes
+          </div>
+        </div>
+      </div>
+      
+      <!-- Columna PREPARANDO -->
+      <div 
+        class="kanban-column flex-shrink-0 w-80"
+        (dragover)="onDragOver($event)"
+        (drop)="onDrop($event, OrderStatus.PREPARING)"
+      >
+        <div class="kanban-column-header bg-blue-100 border-blue-300">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl">🍳</span>
+            <div>
+              <h3 class="font-bold text-gray-800">Preparando</h3>
+              <p class="text-xs text-gray-600">{{ getOrdersByStatus(OrderStatus.PREPARING).length }} orden(es)</p>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-column-body">
+          <div 
+            *ngFor="let order of getOrdersByStatus(OrderStatus.PREPARING)"
+            [draggable]="canChangeOrderStatus()"
+            (dragstart)="onDragStart($event, order)"
+            (dragend)="onDragEnd()"
+            class="kanban-card"
+            [class.dragging]="draggedOrder?.id === order.id"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-lg">#{{ order.id }}</span>
+              <button 
+                (click)="viewOrderDetail(order)"
+                class="text-blue-600 hover:text-blue-800"
+                title="Ver detalle"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+            </div>
+            <p class="text-sm text-gray-600 mb-2">Mesa {{ getTableNumber(order.table_id) }}</p>
+            <p class="text-sm text-gray-600 mb-3">{{ order.items.length }} item(s)</p>
+            <div class="flex items-center justify-between pt-3 border-t">
+              <span class="text-xl font-bold text-green-600">${{ order.total.toFixed(2) }}</span>
+              <span [class]="'badge text-xs ' + getPaymentStatusBadge(order.payment_status)">
+                {{ getPaymentStatusLabel(order.payment_status) }}
+              </span>
+            </div>
+          </div>
+          <div *ngIf="getOrdersByStatus(OrderStatus.PREPARING).length === 0" class="text-center text-gray-400 py-8">
+            No hay órdenes en preparación
+          </div>
+        </div>
+      </div>
+      
+      <!-- Columna COMPLETADA -->
+      <div 
+        class="kanban-column flex-shrink-0 w-80"
+        (dragover)="onDragOver($event)"
+        (drop)="onDrop($event, OrderStatus.COMPLETED)"
+      >
+        <div class="kanban-column-header bg-green-100 border-green-300">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl">✅</span>
+            <div>
+              <h3 class="font-bold text-gray-800">Completada</h3>
+              <p class="text-xs text-gray-600">{{ getOrdersByStatus(OrderStatus.COMPLETED).length }} orden(es)</p>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-column-body">
+          <div 
+            *ngFor="let order of getOrdersByStatus(OrderStatus.COMPLETED)"
+            [draggable]="canChangeOrderStatus()"
+            (dragstart)="onDragStart($event, order)"
+            (dragend)="onDragEnd()"
+            class="kanban-card"
+            [class.dragging]="draggedOrder?.id === order.id"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-lg">#{{ order.id }}</span>
+              <button 
+                (click)="viewOrderDetail(order)"
+                class="text-blue-600 hover:text-blue-800"
+                title="Ver detalle"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+            </div>
+            <p class="text-sm text-gray-600 mb-2">Mesa {{ getTableNumber(order.table_id) }}</p>
+            <p class="text-sm text-gray-600 mb-3">{{ order.items.length }} item(s)</p>
+            <div class="flex items-center justify-between pt-3 border-t">
+              <span class="text-xl font-bold text-green-600">${{ order.total.toFixed(2) }}</span>
+              <span [class]="'badge text-xs ' + getPaymentStatusBadge(order.payment_status)">
+                {{ getPaymentStatusLabel(order.payment_status) }}
+              </span>
+            </div>
+          </div>
+          <div *ngIf="getOrdersByStatus(OrderStatus.COMPLETED).length === 0" class="text-center text-gray-400 py-8">
+            No hay órdenes completadas
+          </div>
+        </div>
+      </div>
+      
+      <!-- Columna CANCELADA -->
+      <div 
+        class="kanban-column flex-shrink-0 w-80"
+        (dragover)="onDragOver($event)"
+        (drop)="onDrop($event, OrderStatus.CANCELLED)"
+      >
+        <div class="kanban-column-header bg-red-100 border-red-300">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl">❌</span>
+            <div>
+              <h3 class="font-bold text-gray-800">Cancelada</h3>
+              <p class="text-xs text-gray-600">{{ getOrdersByStatus(OrderStatus.CANCELLED).length }} orden(es)</p>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-column-body">
+          <div 
+            *ngFor="let order of getOrdersByStatus(OrderStatus.CANCELLED)"
+            [draggable]="canChangeOrderStatus()"
+            (dragstart)="onDragStart($event, order)"
+            (dragend)="onDragEnd()"
+            class="kanban-card"
+            [class.dragging]="draggedOrder?.id === order.id"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-lg">#{{ order.id }}</span>
+              <button 
+                (click)="viewOrderDetail(order)"
+                class="text-blue-600 hover:text-blue-800"
+                title="Ver detalle"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+            </div>
+            <p class="text-sm text-gray-600 mb-2">Mesa {{ getTableNumber(order.table_id) }}</p>
+            <p class="text-sm text-gray-600 mb-3">{{ order.items.length }} item(s)</p>
+            <div class="flex items-center justify-between pt-3 border-t">
+              <span class="text-xl font-bold text-green-600">${{ order.total.toFixed(2) }}</span>
+              <span [class]="'badge text-xs ' + getPaymentStatusBadge(order.payment_status)">
+                {{ getPaymentStatusLabel(order.payment_status) }}
+              </span>
+            </div>
+          </div>
+          <div *ngIf="getOrdersByStatus(OrderStatus.CANCELLED).length === 0" class="text-center text-gray-400 py-8">
+            No hay órdenes canceladas
+          </div>
+        </div>
       </div>
     </div>
   </div>

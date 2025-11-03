@@ -33,11 +33,11 @@ def create_order(
         table.status = TableStatus.OCCUPIED
     
     # Crear la orden
-    new_order = Order(
+    order = Order(
         table_id=order_data.table_id,
         user_id=current_user.id,
         notes=order_data.notes,
-        status=OrderStatus.PENDING
+        status=OrderStatus.PENDING.value
     )
     
     subtotal = 0
@@ -197,7 +197,7 @@ def update_order(
         order.total = order.subtotal + order.tax - order.discount
     
     # Si se marca como completada y está pagada, liberar la mesa
-    if update_data.get("status") == OrderStatus.COMPLETED and order.payment_status == "paid":
+    if update_data.get("status") == OrderStatus.COMPLETED.value and order.payment_status == "paid":
         order.paid_at = datetime.utcnow()
         # Liberar la mesa si tiene una asignada
         if order.table_id:
@@ -230,7 +230,7 @@ def update_order_items(
         )
     
     # No permitir editar órdenes completadas o canceladas
-    if order.status == OrderStatus.COMPLETED or order.status == OrderStatus.CANCELLED:
+    if order.status == OrderStatus.COMPLETED.value or order.status == OrderStatus.CANCELLED.value:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No se pueden editar órdenes completadas o canceladas"
