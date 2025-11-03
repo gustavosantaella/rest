@@ -5,14 +5,15 @@ import { UserService } from '../../core/services/user.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ConfirmService } from '../../core/services/confirm.service';
+import { RoleService } from '../../core/services/role.service';
 import { User, UserRole, UserCreate } from '../../core/models/user.model';
 import { TooltipDirective } from '../../shared/directives/tooltip.directive';
-import { UserPermissionsModalComponent } from '../../shared/components/user-permissions-modal/user-permissions-modal.component';
+import { UserRolesModalComponent } from '../../shared/components/user-roles-modal/user-roles-modal.component';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TooltipDirective, UserPermissionsModalComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TooltipDirective, UserRolesModalComponent],
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.scss']
 })
@@ -22,6 +23,7 @@ export class UsersComponent implements OnInit {
   private fb = inject(FormBuilder);
   private notificationService = inject(NotificationService);
   private confirmService = inject(ConfirmService);
+  private roleService = inject(RoleService);
   
   users: User[] = [];
   currentUser: User | null = null;
@@ -31,11 +33,10 @@ export class UsersComponent implements OnInit {
   userForm!: FormGroup;
   loading = true;
   
-  // Permisos
-  showPermissionsModal = false;
-  selectedUserForPermissions: User | null = null;
+  // Roles
+  showRolesModal = false;
+  selectedUserForRoles: User | null = null;
   
-  userRoles = Object.values(UserRole);
   // Exponer UserRole para el template
   UserRole = UserRole;
   
@@ -71,7 +72,6 @@ export class UsersComponent implements OnInit {
       username: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       full_name: ['', Validators.required],
-      role: [UserRole.WAITER, Validators.required],
       password: ['', Validators.required]
     });
   }
@@ -90,11 +90,15 @@ export class UsersComponent implements OnInit {
     this.editingUser = user || null;
     
     if (user) {
-      this.userForm.patchValue(user);
+      this.userForm.patchValue({
+        username: user.username,
+        email: user.email,
+        full_name: user.full_name
+      });
       this.userForm.get('password')?.clearValidators();
       this.userForm.get('password')?.updateValueAndValidity();
     } else {
-      this.userForm.reset({ role: UserRole.WAITER });
+      this.userForm.reset();
       this.userForm.get('password')?.setValidators(Validators.required);
       this.userForm.get('password')?.updateValueAndValidity();
     }
@@ -110,7 +114,11 @@ export class UsersComponent implements OnInit {
   saveUser(): void {
     if (this.userForm.invalid) return;
     
-    const userData: any = this.userForm.value;
+    const userData: any = { ...this.userForm.value };
+    
+    // Asignar rol base por defecto (WAITER)
+    // Los roles personalizados se asignarán después usando el botón 👥
+    userData.role = UserRole.WAITER;
     
     // Si no hay password en edición, removerlo
     if (this.editingUser && !userData.password) {
@@ -130,10 +138,10 @@ export class UsersComponent implements OnInit {
       });
     } else {
       this.userService.createUser(userData).subscribe({
-        next: () => {
+        next: (newUser) => {
           this.loadUsers();
           this.closeModal();
-          this.notificationService.success('Usuario creado exitosamente');
+          this.notificationService.success('Usuario creado exitosamente. Ahora puedes asignarle roles usando el botón 👥');
         },
         error: (err) => {
           this.notificationService.error('Error al crear usuario: ' + (err.error?.detail || 'Error desconocido'));
@@ -199,18 +207,19 @@ export class UsersComponent implements OnInit {
     return false;
   }
   
-  openPermissionsModal(user: User): void {
-    this.selectedUserForPermissions = user;
-    this.showPermissionsModal = true;
+  openRolesModal(user: User): void {
+    this.selectedUserForRoles = user;
+    this.showRolesModal = true;
   }
   
-  closePermissionsModal(): void {
-    this.showPermissionsModal = false;
-    this.selectedUserForPermissions = null;
+  closeRolesModal(): void {
+    this.showRolesModal = false;
+    this.selectedUserForRoles = null;
   }
   
-  onPermissionsSaved(): void {
-    this.notificationService.success('Los permisos han sido actualizados');
+  onRolesSaved(): void {
+    this.loadUsers();  // Recargar usuarios para ver los roles actualizados
+    this.notificationService.success('Roles asignados exitosamente');
   }
 }
 

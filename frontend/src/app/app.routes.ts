@@ -57,6 +57,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/configuration/configuration.component').then(m => m.ConfigurationComponent)
       },
       {
+        path: 'configuration/roles',
+        loadComponent: () => import('./features/roles-permissions/roles-permissions.component').then(m => m.RolesPermissionsComponent)
+      },
+      {
         path: 'configuration',
         redirectTo: 'configuration/business',
         pathMatch: 'full'

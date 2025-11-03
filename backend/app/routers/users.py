@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List
 from ..database import get_db
 from ..models.user import User
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 def _build_user_response(user: User, db: Session) -> UserResponse:
-    """Construye respuesta del usuario con el nombre del negocio"""
+    """Construye respuesta del usuario con el nombre del negocio y roles personalizados"""
     business_name = None
     if user.business_id:
         business = (
@@ -35,6 +35,7 @@ def _build_user_response(user: User, db: Session) -> UserResponse:
         is_active=user.is_active,
         created_at=user.created_at,
         business_name=business_name,
+        custom_roles=[{"id": r.id, "name": r.name} for r in user.custom_roles] if user.custom_roles else []
     )
 
 
@@ -52,9 +53,10 @@ def read_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_admin),
 ):
-    # Filtrar usuarios del mismo negocio y no eliminados
+    # Filtrar usuarios del mismo negocio y no eliminados, cargar roles personalizados
     users = (
         db.query(User)
+        .options(joinedload(User.custom_roles))  # Cargar roles personalizados
         .filter(
             User.business_id == current_user.business_id,
             User.deleted_at.is_(None)  # Solo usuarios no eliminados

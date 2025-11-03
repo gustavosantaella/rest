@@ -6,6 +6,11 @@ export enum UserRole {
   CHEF = 'chef'  // Cocinero
 }
 
+export interface SimpleRoleInfo {
+  id: number;
+  name: string;
+}
+
 export interface User {
   id: number;
   business_id?: number;
@@ -18,6 +23,7 @@ export interface User {
   country?: string;
   created_at: string;
   business_name?: string;  // Nombre del negocio al que pertenece
+  custom_roles?: SimpleRoleInfo[];  // Roles personalizados asignados
 }
 
 export interface LoginRequest {

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from ..models.user import UserRole
 
@@ -14,8 +14,14 @@ class UserBase(BaseModel):
     business_id: Optional[int] = None
 
 
-class UserCreate(UserBase):
+class UserCreate(BaseModel):
+    username: str
+    email: EmailStr
+    full_name: str
     password: str
+    role: Optional[UserRole] = UserRole.WAITER  # Rol por defecto si no se especifica
+    dni: Optional[str] = None
+    country: Optional[str] = None
 
 
 class UserUpdate(BaseModel):
@@ -29,11 +35,21 @@ class UserUpdate(BaseModel):
     country: Optional[str] = None
 
 
+# Simple role info para evitar importación circular
+class SimpleRoleInfo(BaseModel):
+    id: int
+    name: str
+    
+    class Config:
+        from_attributes = True
+
+
 class UserResponse(UserBase):
     id: int
     is_active: bool
     created_at: datetime
     business_name: Optional[str] = None  # Nombre del negocio al que pertenece
+    custom_roles: List[SimpleRoleInfo] = []  # Roles personalizados asignados
     
     class Config:
         from_attributes = True

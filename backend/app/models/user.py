@@ -36,4 +36,5 @@ class User(Base):
     # Relaciones
     business = relationship("BusinessConfiguration", back_populates="users")
     permissions = relationship("UserPermission", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    custom_roles = relationship("Role", secondary="user_roles", back_populates="users")
 

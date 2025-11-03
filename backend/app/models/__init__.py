@@ -7,6 +7,7 @@ from .configuration import BusinessConfiguration, Partner
 from .payment_method import PaymentMethod, PaymentMethodType
 from .order_payment import OrderPayment
 from .permission import UserPermission
+from .role_permission import Role, Permission, role_permissions, user_roles
 
 __all__ = [
     "User",
@@ -26,4 +27,8 @@ __all__ = [
     "PaymentMethodType",
     "OrderPayment",
     "UserPermission",
+    "Role",
+    "Permission",
+    "role_permissions",
+    "user_roles",
 ]

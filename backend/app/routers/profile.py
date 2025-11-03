@@ -5,7 +5,7 @@ from ..models.user import User
 from ..models.configuration import BusinessConfiguration
 from ..schemas.user import UserResponse
 from ..schemas.profile import ProfileUpdate, PasswordChange
-from ..utils.dependencies import get_current_user, get_current_active_admin
+from ..utils.dependencies import get_current_user, get_current_active_admin, get_user_permissions
 from ..utils.security import verify_password, get_password_hash
 
 router = APIRouter(prefix="/profile", tags=["profile"])
@@ -15,6 +15,20 @@ router = APIRouter(prefix="/profile", tags=["profile"])
 def get_my_profile(current_user: User = Depends(get_current_user)):
     """Obtener perfil del usuario actual"""
     return current_user
+
+
+@router.get("/my-permissions")
+def get_my_permissions(current_user: User = Depends(get_current_user)):
+    """Debug: Ver todos los permisos del usuario actual"""
+    permissions = list(get_user_permissions(current_user))
+    
+    return {
+        "user": current_user.username,
+        "role": current_user.role,
+        "custom_roles": [{"id": r.id, "name": r.name} for r in current_user.custom_roles] if current_user.custom_roles else [],
+        "permissions": permissions,
+        "total_permissions": len(permissions)
+    }
 
 
 @router.put("/me", response_model=UserResponse)

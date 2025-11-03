@@ -45,46 +45,71 @@
           <span class="text-gray-600">{{ user.email }}</span>
         </div>
         
-        <div class="flex items-center space-x-2">
-          <span [class]="'badge ' + getRoleBadgeClass(user.role)">
+        <div class="flex items-center space-x-2 flex-wrap gap-2">
+          <!-- Mostrar rol de administrador si aplica -->
+          <span *ngIf="user.role === UserRole.ADMIN" [class]="'badge ' + getRoleBadgeClass(user.role)">
+            {{ roleLabels[user.role] }}
+          </span>
+          
+          <!-- Mostrar roles personalizados -->
+          <span 
+            *ngFor="let customRole of user.custom_roles" 
+            class="badge bg-purple-100 text-purple-800"
+          >
+            {{ customRole.name }}
+          </span>
+          
+          <!-- Mostrar rol base solo si no tiene roles personalizados y no es admin -->
+          <span 
+            *ngIf="user.role !== UserRole.ADMIN && (!user.custom_roles || user.custom_roles.length === 0)"
+            [class]="'badge ' + getRoleBadgeClass(user.role)"
+          >
             {{ roleLabels[user.role] }}
           </span>
         </div>
         
         <p class="text-xs text-gray-500 mt-2">
-          {{ roleDescriptions[user.role] }}
+          <span *ngIf="user.role === UserRole.ADMIN">
+            {{ roleDescriptions[user.role] }}
+          </span>
+          <span *ngIf="user.custom_roles && user.custom_roles.length > 0">
+            {{ user.custom_roles.length }} rol(es) personalizado(s) con permisos específicos
+          </span>
+          <span *ngIf="user.role !== UserRole.ADMIN && (!user.custom_roles || user.custom_roles.length === 0)">
+            {{ roleDescriptions[user.role] }}
+          </span>
         </p>
       </div>
       
       <!-- Actions -->
-      <div *ngIf="canManageUser(user) && currentUser" class="flex space-x-2 pt-4 border-t">
+      <div *ngIf="canManageUser(user) && currentUser" class="flex flex-wrap gap-2 pt-4 border-t">
         <button
           (click)="openModal(user)"
-          class="flex-1 btn-secondary text-sm py-2"
+          class="flex-1 min-w-[80px] btn-secondary text-sm py-2"
         >
           Editar
         </button>
-        <!-- Candado de permisos solo para usuarios NO administradores -->
+        <!-- Botón de roles solo para usuarios NO administradores -->
         <button
           *ngIf="user.role !== UserRole.ADMIN"
-          (click)="openPermissionsModal(user)"
-          class="btn-info text-sm py-2 px-3"
-          title="Gestionar permisos"
-          appTooltip="Permisos"
+          (click)="openRolesModal(user)"
+          class="btn-info text-sm py-2 px-3 flex-shrink-0"
+          title="Asignar roles"
+          appTooltip="Roles"
         >
-          🔒
+          👥
         </button>
         <button
           (click)="toggleUserStatus(user)"
           [class]="user.is_active ? 'btn-secondary' : 'btn-success'"
-          class="flex-1 text-sm py-2"
+          class="flex-1 min-w-[100px] text-sm py-2"
         >
           {{ user.is_active ? 'Desactivar' : 'Activar' }}
         </button>
         <button
           *ngIf="user.id !== currentUser?.id"
           (click)="deleteUser(user)"
-          class="btn-danger text-sm py-2 px-3"
+          class="btn-danger text-sm py-2 px-3 flex-shrink-0"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -159,18 +184,17 @@
             />
           </div>
           
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Rol *</label>
-            <select 
-              formControlName="role" 
-              class="input-field"
-              appTooltip="Define los permisos del usuario. Admin: acceso total, Manager: gestión, Waiter: órdenes, Cashier: pagos."
-              tooltipPosition="top"
-            >
-              <option *ngFor="let role of userRoles" [value]="role">
-                {{ roleLabels[role] }} - {{ roleDescriptions[role] }}
-              </option>
-            </select>
+          <!-- Nota sobre roles -->
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-start space-x-3">
+              <span class="text-2xl">👥</span>
+              <div>
+                <p class="text-sm font-medium text-blue-900">Asignación de Roles</p>
+                <p class="text-xs text-blue-700 mt-1">
+                  Los roles se asignan después de crear el usuario usando el botón 👥 en la tarjeta del usuario.
+                </p>
+              </div>
+            </div>
           </div>
           
           <div>
@@ -200,11 +224,11 @@
   </div>
 </div>
 
-<!-- Permissions Modal -->
-<app-user-permissions-modal
-  [user]="selectedUserForPermissions"
-  [isOpen]="showPermissionsModal"
-  (closeModal)="closePermissionsModal()"
-  (permissionsSaved)="onPermissionsSaved()"
-></app-user-permissions-modal>
+<!-- Roles Modal -->
+<app-user-roles-modal
+  [user]="selectedUserForRoles"
+  [isOpen]="showRolesModal"
+  (closeModal)="closeRolesModal()"
+  (rolesSaved)="onRolesSaved()"
+></app-user-roles-modal>
 

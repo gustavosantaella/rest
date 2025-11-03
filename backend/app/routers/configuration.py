@@ -12,7 +12,7 @@ from ..schemas.configuration import (
     BusinessConfigurationCreate, BusinessConfigurationUpdate, BusinessConfigurationResponse,
     PartnerCreate, PartnerUpdate, PartnerResponse
 )
-from ..utils.dependencies import get_current_active_admin
+from ..utils.dependencies import get_current_active_admin, check_config_permission
 
 router = APIRouter(prefix="/configuration", tags=["configuration"])
 
@@ -48,7 +48,7 @@ def generate_slug(business_name: str, db: Session, exclude_id: int = None) -> st
 def create_business_configuration(
     config: BusinessConfigurationCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_admin),
+    current_user: User = Depends(check_config_permission),
 ):
     # Verificar si ya existe configuración
     existing = db.query(BusinessConfiguration).first()
@@ -74,7 +74,7 @@ def create_business_configuration(
 @router.get("/", response_model=BusinessConfigurationResponse)
 def get_business_configuration(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_admin),
+    current_user: User = Depends(check_config_permission),
 ):
     config = db.query(BusinessConfiguration).first()
     if not config:
@@ -89,7 +89,7 @@ def get_business_configuration(
 def update_business_configuration(
     config_update: BusinessConfigurationUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_admin),
+    current_user: User = Depends(check_config_permission),
 ):
     config = db.query(BusinessConfiguration).first()
     if not config:
@@ -115,7 +115,7 @@ def update_business_configuration(
 @router.get("/qr-code")
 def get_catalog_qr_code(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_admin),
+    current_user: User = Depends(check_config_permission),
 ):
     """
     Genera un código QR para el catálogo público del negocio.
@@ -172,7 +172,7 @@ def get_catalog_qr_code(
 def add_partner(
     partner: PartnerCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_admin),
+    current_user: User = Depends(check_config_permission),
 ):
     # Verificar que existe la configuración
     config = db.query(BusinessConfiguration).first()
@@ -218,7 +218,7 @@ def add_partner(
 @router.get("/partners", response_model=List[PartnerResponse])
 def get_partners(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_admin),
+    current_user: User = Depends(check_config_permission),
 ):
     config = db.query(BusinessConfiguration).first()
     if not config:
@@ -232,7 +232,7 @@ def update_partner(
     partner_id: int,
     partner_update: PartnerUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_admin),
+    current_user: User = Depends(check_config_permission),
 ):
     partner = db.query(Partner).filter(Partner.id == partner_id).first()
     if not partner:
@@ -270,7 +270,7 @@ def update_partner(
 def delete_partner(
     partner_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_admin),
+    current_user: User = Depends(check_config_permission),
 ):
     partner = db.query(Partner).filter(Partner.id == partner_id).first()
     if not partner:
