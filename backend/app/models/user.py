@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
 from ..database import Base
@@ -16,17 +17,21 @@ class User(Base):
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True, nullable=False)
-    email = Column(String, unique=True, index=True, nullable=False)
+    business_id = Column(Integer, ForeignKey("business_configuration.id", ondelete='CASCADE'), nullable=True, index=True)
+    username = Column(String, index=True, nullable=False)  # Ya no es unique globalmente
+    email = Column(String, index=True, nullable=False)  # Ya no es unique globalmente
     full_name = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
     role = Column(Enum(UserRole), default=UserRole.WAITER, nullable=False)
     is_active = Column(Boolean, default=True)
     
     # Información adicional del perfil
-    dni = Column(String, unique=True, index=True)  # Documento de identidad
+    dni = Column(String, index=True)  # Ya no es unique globalmente
     country = Column(String)  # País
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relación con el negocio
+    business = relationship("BusinessConfiguration", back_populates="users")
 

@@ -8,6 +8,7 @@ export enum UserRole {
 
 export interface User {
   id: number;
+  business_id?: number;
   username: string;
   email: string;
   full_name: string;
@@ -16,6 +17,7 @@ export interface User {
   dni?: string;
   country?: string;
   created_at: string;
+  business_name?: string;  // Nombre del negocio al que pertenece
 }
 
 export interface LoginRequest {
@@ -34,5 +36,25 @@ export interface UserCreate {
   full_name: string;
   password: string;
   role: UserRole;
+  dni?: string;
+  country?: string;
+}
+
+export interface RegisterRequest {
+  // Datos del usuario
+  email: string;
+  password: string;
+  full_name: string;
+  
+  // Datos del negocio
+  business_name: string;
+  legal_name?: string;
+  phone?: string;
+}
+
+export interface RegisterResponse {
+  message: string;
+  business_slug: string;
+  user_email: string;
 }
 

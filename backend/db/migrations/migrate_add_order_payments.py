@@ -3,6 +3,10 @@ Script para agregar tabla order_payments y campo payment_status
 Ejecutar: python migrate_add_order_payments.py
 """
 from sqlalchemy import text
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 from app.database import engine
 
 def migrate():

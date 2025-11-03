@@ -11,6 +11,7 @@ class UserBase(BaseModel):
     role: UserRole = UserRole.WAITER
     dni: Optional[str] = None
     country: Optional[str] = None
+    business_id: Optional[int] = None
 
 
 class UserCreate(UserBase):
@@ -32,6 +33,7 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     created_at: datetime
+    business_name: Optional[str] = None  # Nombre del negocio al que pertenece
     
     class Config:
         from_attributes = True

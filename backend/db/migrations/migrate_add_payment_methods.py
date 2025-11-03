@@ -3,6 +3,10 @@ Script para agregar tabla payment_methods
 Ejecutar: python migrate_add_payment_methods.py
 """
 from sqlalchemy import text
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 from app.database import engine
 
 def migrate():

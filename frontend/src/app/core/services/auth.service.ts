@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap, catchError, of, timeout } from 'rxjs';
-import { User, LoginRequest, LoginResponse } from '../models/user.model';
+import { User, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from '../models/user.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -33,6 +33,10 @@ export class AuthService {
           this.loadCurrentUser();
         })
       );
+  }
+
+  register(data: RegisterRequest): Observable<RegisterResponse> {
+    return this.http.post<RegisterResponse>(`${environment.apiUrl}/auth/register`, data);
   }
   
   logout(): void {

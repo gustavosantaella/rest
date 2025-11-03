@@ -3,6 +3,10 @@ Script para agregar campo show_in_catalog a products
 Ejecutar: python migrate_add_show_in_catalog.py
 """
 from sqlalchemy import text
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 from app.database import engine
 
 def migrate():

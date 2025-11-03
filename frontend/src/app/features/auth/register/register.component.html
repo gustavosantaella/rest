@@ -1,0 +1,189 @@
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-2xl w-full space-y-8">
+    <!-- Header -->
+    <div class="text-center">
+      <h2 class="text-4xl font-extrabold text-gray-900">
+        Crea tu cuenta
+      </h2>
+      <p class="mt-2 text-sm text-gray-600">
+        Registra tu negocio y comienza a gestionar tu restaurante o local
+      </p>
+    </div>
+
+    <!-- Success Message -->
+    <div *ngIf="successMessage" class="bg-green-50 border border-green-200 rounded-lg p-4">
+      <div class="flex">
+        <svg class="w-5 h-5 text-green-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+        </svg>
+        <div class="flex-1">
+          <p class="text-sm font-medium text-green-800">{{ successMessage }}</p>
+          <p class="text-xs text-green-700 mt-1">Redirigiendo al login...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="bg-red-50 border border-red-200 rounded-lg p-4">
+      <div class="flex">
+        <svg class="w-5 h-5 text-red-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+        </svg>
+        <p class="text-sm font-medium text-red-800">{{ errorMessage }}</p>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white rounded-2xl shadow-2xl p-8">
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        
+        <!-- Sección: Datos del Negocio -->
+        <div class="border-b pb-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Datos del Negocio</h3>
+          
+          <div class="space-y-4">
+            <!-- Nombre del Negocio -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Nombre del Negocio *
+              </label>
+              <input
+                type="text"
+                formControlName="business_name"
+                class="input-field"
+                placeholder="Ej: Restaurante El Buen Sabor"
+              />
+              <p class="text-xs text-gray-500 mt-1">Nombre con el que tus clientes conocen tu negocio</p>
+            </div>
+
+            <!-- Razón Social (opcional) -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Razón Social (opcional)
+              </label>
+              <input
+                type="text"
+                formControlName="legal_name"
+                class="input-field"
+                placeholder="Ej: Restaurante El Buen Sabor C.A."
+              />
+              <p class="text-xs text-gray-500 mt-1">Nombre legal de tu empresa (opcional)</p>
+            </div>
+
+            <!-- Teléfono de Contacto -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Teléfono de Contacto
+              </label>
+              <input
+                type="tel"
+                formControlName="phone"
+                class="input-field"
+                placeholder="Ej: +58 412-1234567"
+              />
+              <p class="text-xs text-gray-500 mt-1">Número de teléfono de tu negocio</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección: Datos del Administrador -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">👤 Datos del Administrador</h3>
+          
+          <div class="space-y-4">
+            <!-- Nombre Completo -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Nombre Completo *
+              </label>
+              <input
+                type="text"
+                formControlName="full_name"
+                class="input-field"
+                placeholder="Ej: Juan Pérez"
+              />
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Correo Electrónico *
+              </label>
+              <input
+                type="email"
+                formControlName="email"
+                class="input-field"
+                placeholder="tu@email.com"
+              />
+              <p class="text-xs text-gray-500 mt-1">Este será tu usuario para iniciar sesión</p>
+            </div>
+
+            <!-- Contraseña -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Contraseña *
+              </label>
+              <input
+                type="password"
+                formControlName="password"
+                class="input-field"
+                placeholder="Mínimo 8 caracteres"
+              />
+              <p class="text-xs text-gray-500 mt-1">
+                Debe tener al menos 8 caracteres
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div>
+          <button
+            type="submit"
+            [disabled]="registerForm.invalid || loading"
+            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <span *ngIf="!loading">Crear mi cuenta</span>
+            <span *ngIf="loading" class="flex items-center">
+              <svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Creando cuenta...
+            </span>
+          </button>
+        </div>
+
+        <!-- Login Link -->
+        <div class="text-center">
+          <p class="text-sm text-gray-600">
+            ¿Ya tienes una cuenta?
+            <a routerLink="/login" class="font-medium text-primary-600 hover:text-primary-500">
+              Inicia sesión aquí
+            </a>
+          </p>
+        </div>
+      </form>
+    </div>
+
+    <!-- Info Box -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div class="flex">
+        <svg class="w-5 h-5 text-blue-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        <div class="text-sm text-blue-800">
+          <p class="font-medium">Al registrarte obtienes:</p>
+          <ul class="mt-2 list-disc list-inside space-y-1">
+            <li>Panel de administración completo</li>
+            <li>Gestión de inventario y menú</li>
+            <li>Sistema de órdenes y pagos</li>
+            <li>Catálogo público con código QR</li>
+            <li>Gestión de usuarios y permisos</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

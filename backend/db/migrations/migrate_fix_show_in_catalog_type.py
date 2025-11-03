@@ -3,6 +3,10 @@ Script para cambiar tipo de show_in_catalog de INTEGER a BOOLEAN
 Ejecutar: python migrate_fix_show_in_catalog_type.py
 """
 from sqlalchemy import text
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 from app.database import engine
 
 def migrate():

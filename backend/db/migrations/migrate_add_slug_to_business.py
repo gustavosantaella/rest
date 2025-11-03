@@ -2,6 +2,10 @@
 Migración: Agregar campo slug a business_configuration
 """
 from sqlalchemy import create_engine, text
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 from app.config import settings
 import re
 
