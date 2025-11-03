@@ -22,7 +22,11 @@ async def get_current_user(
     if username is None:
         raise credentials_exception
     
-    user = db.query(User).filter(User.username == username).first()
+    # Buscar usuario (solo usuarios no eliminados)
+    user = db.query(User).filter(
+        User.username == username,
+        User.deleted_at.is_(None)  # Solo usuarios no eliminados
+    ).first()
     if user is None:
         raise credentials_exception
     

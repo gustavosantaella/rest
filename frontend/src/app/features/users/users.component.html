@@ -64,6 +64,16 @@
         >
           Editar
         </button>
+        <!-- Candado de permisos solo para usuarios NO administradores -->
+        <button
+          *ngIf="user.role !== UserRole.ADMIN"
+          (click)="openPermissionsModal(user)"
+          class="btn-info text-sm py-2 px-3"
+          title="Gestionar permisos"
+          appTooltip="Permisos"
+        >
+          🔒
+        </button>
         <button
           (click)="toggleUserStatus(user)"
           [class]="user.is_active ? 'btn-secondary' : 'btn-success'"
@@ -189,4 +199,12 @@
     </div>
   </div>
 </div>
+
+<!-- Permissions Modal -->
+<app-user-permissions-modal
+  [user]="selectedUserForPermissions"
+  [isOpen]="showPermissionsModal"
+  (closeModal)="closePermissionsModal()"
+  (permissionsSaved)="onPermissionsSaved()"
+></app-user-permissions-modal>
 

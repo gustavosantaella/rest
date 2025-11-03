@@ -33,6 +33,7 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)  # Soft delete
     
-    # Relación con el negocio
+    # Relaciones
     business = relationship("BusinessConfiguration", back_populates="users")
+    permissions = relationship("UserPermission", back_populates="user", uselist=False, cascade="all, delete-orphan")
 

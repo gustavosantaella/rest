@@ -7,11 +7,12 @@ import { NotificationService } from '../../core/services/notification.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { User, UserRole, UserCreate } from '../../core/models/user.model';
 import { TooltipDirective } from '../../shared/directives/tooltip.directive';
+import { UserPermissionsModalComponent } from '../../shared/components/user-permissions-modal/user-permissions-modal.component';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TooltipDirective],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TooltipDirective, UserPermissionsModalComponent],
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.scss']
 })
@@ -29,6 +30,10 @@ export class UsersComponent implements OnInit {
   editingUser: User | null = null;
   userForm!: FormGroup;
   loading = true;
+  
+  // Permisos
+  showPermissionsModal = false;
+  selectedUserForPermissions: User | null = null;
   
   userRoles = Object.values(UserRole);
   // Exponer UserRole para el template
@@ -192,6 +197,20 @@ export class UsersComponent implements OnInit {
     }
     
     return false;
+  }
+  
+  openPermissionsModal(user: User): void {
+    this.selectedUserForPermissions = user;
+    this.showPermissionsModal = true;
+  }
+  
+  closePermissionsModal(): void {
+    this.showPermissionsModal = false;
+    this.selectedUserForPermissions = null;
+  }
+  
+  onPermissionsSaved(): void {
+    this.notificationService.success('Los permisos han sido actualizados');
   }
 }
 

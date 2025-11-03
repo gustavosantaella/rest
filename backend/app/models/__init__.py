@@ -6,6 +6,7 @@ from .menu import MenuItem, MenuCategory
 from .configuration import BusinessConfiguration, Partner
 from .payment_method import PaymentMethod, PaymentMethodType
 from .order_payment import OrderPayment
+from .permission import UserPermission
 
 __all__ = [
     "User",
@@ -24,4 +25,5 @@ __all__ = [
     "PaymentMethod",
     "PaymentMethodType",
     "OrderPayment",
+    "UserPermission",
 ]

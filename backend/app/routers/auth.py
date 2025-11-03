@@ -42,8 +42,11 @@ def register(register_data: RegisterRequest, db: Session = Depends(get_db)):
     No requiere autenticación.
     """
     
-    # Verificar si el email ya está registrado en algún negocio
-    existing_user = db.query(User).filter(User.email == register_data.email).first()
+    # Verificar si el email ya está registrado en algún negocio (solo usuarios no eliminados)
+    existing_user = db.query(User).filter(
+        User.email == register_data.email,
+        User.deleted_at.is_(None)  # Solo usuarios no eliminados
+    ).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -110,8 +113,11 @@ def register(register_data: RegisterRequest, db: Session = Depends(get_db)):
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
-    # Buscar usuario
-    user = db.query(User).filter(User.username == form_data.username).first()
+    # Buscar usuario (solo usuarios no eliminados)
+    user = db.query(User).filter(
+        User.username == form_data.username,
+        User.deleted_at.is_(None)  # Solo usuarios no eliminados
+    ).first()
 
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
