@@ -16,6 +16,11 @@ export interface PasswordChange {
   new_password: string;
 }
 
+export interface DeleteAccountResponse {
+  message: string;
+  warning: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -33,6 +38,13 @@ export class ProfileService {
   
   changePassword(passwords: PasswordChange): Observable<{message: string}> {
     return this.http.post<{message: string}>(`${this.apiUrl}/change-password`, passwords);
+  }
+  
+  deleteAccountPermanently(password: string): Observable<DeleteAccountResponse> {
+    return this.http.delete<DeleteAccountResponse>(
+      `${this.apiUrl}/delete-account-permanently`,
+      { params: { password_confirmation: password } }
+    );
   }
 }
 

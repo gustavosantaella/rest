@@ -210,5 +210,211 @@
       </div>
     </div>
   </div>
+  
+  <!-- Danger Zone - Solo para Administradores -->
+  <div *ngIf="isAdmin()" class="card bg-gradient-to-br from-red-50 to-white border-2 border-red-300">
+    <div class="flex items-start space-x-4">
+      <div class="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h2 class="text-xl font-bold mb-2 text-red-900">Zona Peligrosa</h2>
+        <p class="text-sm text-red-800 mb-4">
+          Como administrador, tienes acceso a opciones críticas que pueden afectar permanentemente tu negocio.
+        </p>
+        
+        <div class="bg-white p-4 rounded-lg border-2 border-red-200 mb-4">
+          <div class="flex items-start space-x-3">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <div class="flex-1">
+              <h3 class="font-bold text-red-900 mb-2">Eliminar Cuenta y Negocio Permanentemente</h3>
+              <p class="text-sm text-gray-700 mb-3">
+                Esta acción eliminará <span class="font-bold text-red-600">PERMANENTEMENTE</span> todos los datos del negocio:
+              </p>
+              <ul class="text-sm text-gray-700 space-y-1 mb-4">
+                <li>• Todos los usuarios y empleados</li>
+                <li>• Todo el inventario y productos</li>
+                <li>• Todas las órdenes y transacciones</li>
+                <li>• Todo el menú y categorías</li>
+                <li>• Todas las mesas y configuraciones</li>
+                <li>• Todos los socios y su información</li>
+                <li>• Toda la configuración del negocio</li>
+              </ul>
+              <div class="bg-red-50 border-l-4 border-red-600 p-3 mb-4">
+                <p class="text-sm font-bold text-red-900">
+                  ⚠️ ADVERTENCIA: Esta acción es IRREVERSIBLE y NO se puede deshacer
+                </p>
+              </div>
+              <button 
+                (click)="openDeleteModal()"
+                class="btn-danger flex items-center space-x-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                <span>Eliminar Todo Permanentemente</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div *ngIf="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" (click)="closeDeleteModal()">
+  <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="bg-red-600 text-white p-6 rounded-t-lg">
+      <div class="flex items-center space-x-3">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+        <h2 class="text-2xl font-bold">⚠️ Confirmación de Eliminación Permanente</h2>
+      </div>
+    </div>
+    
+    <!-- Body -->
+    <div class="p-6 space-y-6">
+      <!-- Advertencia Principal -->
+      <div class="bg-red-50 border-2 border-red-600 rounded-lg p-4">
+        <p class="text-lg font-bold text-red-900 mb-2">
+          🚨 ESTA ACCIÓN ES IRREVERSIBLE Y PERMANENTE
+        </p>
+        <p class="text-sm text-red-800">
+          Una vez confirmada, <span class="font-bold">NO HAY FORMA DE RECUPERAR</span> ninguno de los datos eliminados.
+        </p>
+      </div>
+      
+      <!-- Lista de lo que se eliminará -->
+      <div>
+        <h3 class="font-bold text-gray-900 mb-3">Se eliminarán permanentemente:</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="flex items-start space-x-2 text-sm">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <span>Todos los usuarios y empleados</span>
+          </div>
+          <div class="flex items-start space-x-2 text-sm">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <span>Todo el inventario y productos</span>
+          </div>
+          <div class="flex items-start space-x-2 text-sm">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <span>Todas las órdenes y pagos</span>
+          </div>
+          <div class="flex items-start space-x-2 text-sm">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <span>Todo el menú y categorías</span>
+          </div>
+          <div class="flex items-start space-x-2 text-sm">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <span>Todas las mesas</span>
+          </div>
+          <div class="flex items-start space-x-2 text-sm">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <span>Toda la configuración del negocio</span>
+          </div>
+          <div class="flex items-start space-x-2 text-sm">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <span>Todos los socios</span>
+          </div>
+          <div class="flex items-start space-x-2 text-sm">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <span>Todos los métodos de pago</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Confirmación de Texto -->
+      <div>
+        <label class="block text-sm font-medium text-gray-900 mb-2">
+          Para confirmar, escribe exactamente: <span class="font-bold text-red-600">{{ REQUIRED_DELETE_TEXT }}</span>
+        </label>
+        <input 
+          type="text" 
+          [(ngModel)]="deleteConfirmationText"
+          class="input-field"
+          [class.border-red-500]="deleteConfirmationText !== '' && deleteConfirmationText !== REQUIRED_DELETE_TEXT"
+          [class.border-green-500]="deleteConfirmationText === REQUIRED_DELETE_TEXT"
+          placeholder="Escribe ELIMINAR TODO"
+        />
+      </div>
+      
+      <!-- Contraseña -->
+      <div>
+        <label class="block text-sm font-medium text-gray-900 mb-2">
+          Ingresa tu contraseña para confirmar *
+        </label>
+        <input 
+          type="password" 
+          [(ngModel)]="deletePassword"
+          class="input-field"
+          placeholder="Tu contraseña actual"
+        />
+      </div>
+      
+      <!-- Checklist final -->
+      <div class="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4">
+        <h4 class="font-bold text-yellow-900 mb-2">Antes de continuar, confirma que:</h4>
+        <ul class="text-sm text-yellow-800 space-y-1">
+          <li>✓ Has respaldado toda la información importante</li>
+          <li>✓ Todos los empleados han sido notificados</li>
+          <li>✓ Has liquidado todas las cuentas pendientes</li>
+          <li>✓ Entiendes que esta acción NO se puede deshacer</li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+      <button 
+        (click)="closeDeleteModal()"
+        [disabled]="deletingAccount"
+        class="btn-secondary"
+      >
+        Cancelar
+      </button>
+      <button 
+        (click)="deleteAccountPermanently()"
+        [disabled]="!canConfirmDelete() || deletingAccount"
+        class="btn-danger disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <span *ngIf="!deletingAccount" class="flex items-center space-x-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+          <span>Sí, Eliminar Todo Permanentemente</span>
+        </span>
+        <span *ngIf="deletingAccount" class="flex items-center space-x-2">
+          <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Eliminando...</span>
+        </span>
+      </button>
+    </div>
+  </div>
 </div>
 

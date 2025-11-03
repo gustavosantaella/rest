@@ -1,16 +1,16 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { User } from '../../core/models/user.model';
+import { User, UserRole } from '../../core/models/user.model';
 import { TooltipDirective } from '../../shared/directives/tooltip.directive';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TooltipDirective],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, TooltipDirective],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
 })
@@ -26,6 +26,13 @@ export class ProfileComponent implements OnInit {
   
   savingProfile = false;
   savingPassword = false;
+  
+  // Modal de eliminación de cuenta
+  showDeleteModal = false;
+  deletePassword = '';
+  deletingAccount = false;
+  deleteConfirmationText = '';
+  REQUIRED_DELETE_TEXT = 'ELIMINAR TODO';
   
   countries = [
     'Venezuela', 'Colombia', 'México', 'Argentina', 'Chile', 'Perú',
@@ -119,6 +126,53 @@ export class ProfileComponent implements OnInit {
       error: (err) => {
         this.savingPassword = false;
         this.notificationService.error('Error: ' + (err.error?.detail || 'Error desconocido'));
+      }
+    });
+  }
+  
+  // Métodos para eliminación de cuenta
+  isAdmin(): boolean {
+    return this.currentUser?.role === UserRole.ADMIN;
+  }
+  
+  openDeleteModal(): void {
+    this.showDeleteModal = true;
+    this.deletePassword = '';
+    this.deleteConfirmationText = '';
+  }
+  
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.deletePassword = '';
+    this.deleteConfirmationText = '';
+  }
+  
+  canConfirmDelete(): boolean {
+    return this.deletePassword.trim() !== '' && 
+           this.deleteConfirmationText === this.REQUIRED_DELETE_TEXT;
+  }
+  
+  deleteAccountPermanently(): void {
+    if (!this.canConfirmDelete()) {
+      return;
+    }
+    
+    this.deletingAccount = true;
+    
+    this.profileService.deleteAccountPermanently(this.deletePassword).subscribe({
+      next: (response) => {
+        this.deletingAccount = false;
+        this.notificationService.success(response.message);
+        this.notificationService.warning(response.warning);
+        
+        // Cerrar sesión después de 3 segundos
+        setTimeout(() => {
+          this.authService.logout();
+        }, 3000);
+      },
+      error: (err) => {
+        this.deletingAccount = false;
+        this.notificationService.error('Error: ' + (err.error?.detail || 'Error al eliminar la cuenta'));
       }
     });
   }
