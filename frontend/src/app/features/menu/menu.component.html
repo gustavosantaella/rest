@@ -5,7 +5,7 @@
       <h1 class="text-3xl font-bold text-gray-800">Menú del Restaurante</h1>
       <p class="text-gray-600 mt-1">Gestiona los platillos y bebidas que ofreces</p>
     </div>
-    <div class="flex space-x-3">
+    <div *ngIf="canCreateMenu()" class="flex space-x-3">
       <button (click)="openCategoryModal()" class="btn-secondary">
         + Nueva Categoría
       </button>
@@ -125,6 +125,7 @@
         <!-- Actions -->
         <div class="grid grid-cols-3 gap-2">
           <button
+            *ngIf="canEditMenu()"
             (click)="toggleAvailability(item)"
             [class]="item.is_available ? 'btn-secondary' : 'btn-success'"
             class="col-span-1 text-xs py-2 px-2 truncate"
@@ -133,6 +134,7 @@
             {{ item.is_available ? 'Deshabilitar' : 'Habilitar' }}
           </button>
           <button
+            *ngIf="canEditMenu()"
             (click)="openItemModal(item)"
             class="btn-secondary text-sm py-2 px-3 flex items-center justify-center"
             title="Editar"
@@ -142,6 +144,7 @@
             </svg>
           </button>
           <button
+            *ngIf="canDeleteMenu()"
             (click)="deleteItem(item)"
             class="btn-danger text-sm py-2 px-3 flex items-center justify-center"
             title="Eliminar"

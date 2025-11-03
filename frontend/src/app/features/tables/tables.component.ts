@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TableService } from '../../core/services/table.service';
+import { AuthPermissionsService } from '../../core/services/auth-permissions.service';
 import { Table, TableStatus, TableCreate } from '../../core/models/table.model';
 import { TooltipDirective } from '../../shared/directives/tooltip.directive';
 
@@ -15,6 +16,7 @@ import { TooltipDirective } from '../../shared/directives/tooltip.directive';
 })
 export class TablesComponent implements OnInit, OnDestroy {
   private tableService = inject(TableService);
+  private authPermissionsService = inject(AuthPermissionsService);
   private fb = inject(FormBuilder);
   
   tables: Table[] = [];
@@ -151,6 +153,15 @@ export class TablesComponent implements OnInit, OnDestroy {
   
   getTablesByStatus(status: TableStatus): Table[] {
     return this.tables.filter(t => t.status === status);
+  }
+  
+  // Métodos de verificación de permisos
+  canViewTables(): boolean {
+    return this.authPermissionsService.hasPermission('tables.view');
+  }
+  
+  canManageTables(): boolean {
+    return this.authPermissionsService.hasPermission('tables.manage');
   }
 }
 

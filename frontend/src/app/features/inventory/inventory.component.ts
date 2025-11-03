@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProductService } from '../../core/services/product.service';
+import { AuthPermissionsService } from '../../core/services/auth-permissions.service';
 import { Product, Category, UnitType, ProductCreate, CategoryCreate } from '../../core/models/product.model';
 import { TooltipDirective } from '../../shared/directives/tooltip.directive';
 import { ImageUploadComponent } from '../../shared/components/image-upload/image-upload.component';
@@ -16,6 +17,7 @@ import { UploadService } from '../../core/services/upload.service';
 })
 export class InventoryComponent implements OnInit {
   private productService = inject(ProductService);
+  private authPermissionsService = inject(AuthPermissionsService);
   private fb = inject(FormBuilder);
   public uploadService = inject(UploadService);
   
@@ -188,6 +190,27 @@ export class InventoryComponent implements OnInit {
   
   isLowStock(product: Product): boolean {
     return product.stock <= product.min_stock;
+  }
+  
+  // Métodos de verificación de permisos
+  canViewInventory(): boolean {
+    return this.authPermissionsService.hasAnyPermission([
+      'inventory.view',
+      'inventory.manage',
+      'products.view',
+      'products.create',
+      'products.edit',
+      'products.delete'
+    ]);
+  }
+  
+  canManageInventory(): boolean {
+    return this.authPermissionsService.hasAnyPermission([
+      'inventory.manage',
+      'products.create',
+      'products.edit',
+      'products.delete'
+    ]);
   }
 }
 

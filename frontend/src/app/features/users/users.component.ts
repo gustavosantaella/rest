@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UserService } from '../../core/services/user.service';
 import { AuthService } from '../../core/services/auth.service';
+import { AuthPermissionsService } from '../../core/services/auth-permissions.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { RoleService } from '../../core/services/role.service';
@@ -20,6 +21,7 @@ import { UserRolesModalComponent } from '../../shared/components/user-roles-moda
 export class UsersComponent implements OnInit {
   private userService = inject(UserService);
   private authService = inject(AuthService);
+  private authPermissionsService = inject(AuthPermissionsService);
   private fb = inject(FormBuilder);
   private notificationService = inject(NotificationService);
   private confirmService = inject(ConfirmService);
@@ -220,6 +222,27 @@ export class UsersComponent implements OnInit {
   onRolesSaved(): void {
     this.loadUsers();  // Recargar usuarios para ver los roles actualizados
     this.notificationService.success('Roles asignados exitosamente');
+  }
+  
+  // Métodos de verificación de permisos
+  canViewUsers(): boolean {
+    return this.authPermissionsService.hasPermission('users.view');
+  }
+  
+  canCreateUsers(): boolean {
+    return this.authPermissionsService.hasPermission('users.create');
+  }
+  
+  canEditUsers(): boolean {
+    return this.authPermissionsService.hasPermission('users.edit');
+  }
+  
+  canDeleteUsers(): boolean {
+    return this.authPermissionsService.hasPermission('users.delete');
+  }
+  
+  canManageUserPermissions(): boolean {
+    return this.authPermissionsService.hasPermission('users.manage_permissions');
   }
 }
 

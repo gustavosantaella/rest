@@ -32,6 +32,7 @@ SYSTEM_PERMISSIONS = [
     {"code": "orders.create", "name": "Crear Órdenes", "module": "orders", "description": "Crear nuevas órdenes"},
     {"code": "orders.edit", "name": "Editar Órdenes", "module": "orders", "description": "Modificar órdenes existentes"},
     {"code": "orders.delete", "name": "Cancelar Órdenes", "module": "orders", "description": "Cancelar órdenes"},
+    {"code": "orders.change_status", "name": "Cambiar Estado", "module": "orders", "description": "Cambiar el estado de órdenes (pendiente, preparando, completada)"},
     {"code": "orders.process_payment", "name": "Procesar Pagos", "module": "orders", "description": "Registrar pagos de órdenes"},
     
     # Usuarios

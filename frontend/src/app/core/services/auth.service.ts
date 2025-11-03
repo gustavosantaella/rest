@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap, catchError, of, timeout } from 'rxjs';
 import { User, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from '../models/user.model';
 import { environment } from '../../../environments/environment';
+import { AuthPermissionsService } from './auth-permissions.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +12,7 @@ import { environment } from '../../../environments/environment';
 export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private authPermissionsService = inject(AuthPermissionsService);
   
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
@@ -31,6 +33,8 @@ export class AuthService {
         tap(response => {
           this.setToken(response.access_token);
           this.loadCurrentUser();
+          // Cargar permisos del usuario
+          this.authPermissionsService.loadUserPermissions().subscribe();
         })
       );
   }
@@ -42,6 +46,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     this.currentUserSubject.next(null);
+    this.authPermissionsService.clearPermissions();
     this.router.navigate(['/login']);
   }
   
@@ -75,6 +80,7 @@ export class AuthService {
               console.log('🔐 Token inválido o expirado - Cerrando sesión');
               localStorage.removeItem(this.TOKEN_KEY);
               this.currentUserSubject.next(null);
+              this.authPermissionsService.clearPermissions();
             } else if (error.status === 0 || error.name === 'TimeoutError') {
               // Error de red o backend no disponible
               console.warn('⚠️ Backend no disponible. Manteniendo sesión local.');
@@ -94,6 +100,11 @@ export class AuthService {
             console.log('✅ Usuario cargado:', user);
             if (user) {
               this.currentUserSubject.next(user);
+              // Cargar permisos del usuario
+              this.authPermissionsService.loadUserPermissions().subscribe({
+                next: (perms) => console.log('✅ Permisos cargados:', perms.total_permissions),
+                error: (err) => console.warn('⚠️ Error al cargar permisos:', err)
+              });
             } else {
               console.warn('⚠️ Usuario es null - no se actualizará currentUserSubject');
             }

@@ -8,6 +8,7 @@ import { MenuService } from '../../core/services/menu.service';
 import { PaymentMethodService } from '../../core/services/payment-method.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ConfirmService } from '../../core/services/confirm.service';
+import { AuthPermissionsService } from '../../core/services/auth-permissions.service';
 import { Order, OrderStatus, PaymentMethod, OrderCreate, OrderItemCreate, OrderPayment, PaymentStatus, AddPaymentsToOrder, UpdateOrderItems } from '../../core/models/order.model';
 import { PaymentMethod as PaymentMethodModel, PAYMENT_METHOD_LABELS } from '../../core/models/payment-method.model';
 import { Product } from '../../core/models/product.model';
@@ -31,6 +32,7 @@ export class OrdersComponent implements OnInit {
   private fb = inject(FormBuilder);
   private notificationService = inject(NotificationService);
   private confirmService = inject(ConfirmService);
+  private authPermissionsService = inject(AuthPermissionsService);
   
   orders: Order[] = [];
   products: Product[] = [];
@@ -651,6 +653,48 @@ export class OrdersComponent implements OnInit {
     
     const tax = subtotal * 0.16;
     return subtotal + tax;
+  }
+  
+  // Métodos de verificación de permisos
+  canViewOrders(): boolean {
+    return this.authPermissionsService.hasPermission('orders.view');
+  }
+  
+  canCreateOrders(): boolean {
+    return this.authPermissionsService.hasPermission('orders.create');
+  }
+  
+  canEditOrders(): boolean {
+    return this.authPermissionsService.hasPermission('orders.edit');
+  }
+  
+  canDeleteOrders(): boolean {
+    return this.authPermissionsService.hasPermission('orders.delete');
+  }
+  
+  canChangeOrderStatus(): boolean {
+    return this.authPermissionsService.hasPermission('orders.change_status');
+  }
+  
+  canProcessPayments(): boolean {
+    return this.authPermissionsService.hasPermission('orders.process_payment');
+  }
+  
+  quickChangeStatus(order: Order, newStatus: OrderStatus): void {
+    if (!this.canChangeOrderStatus()) {
+      this.notificationService.warning('No tienes permiso para cambiar el estado de órdenes');
+      return;
+    }
+    
+    this.orderService.updateOrder(order.id, { status: newStatus }).subscribe({
+      next: () => {
+        this.loadData();
+        this.notificationService.success(`Estado cambiado a ${this.statusLabels[newStatus]}`);
+      },
+      error: (err) => {
+        this.notificationService.error('Error al cambiar estado: ' + (err.error?.detail || 'Error desconocido'));
+      }
+    });
   }
 }
 

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { AuthService } from '../../core/services/auth.service';
+import { AuthPermissionsService } from '../../core/services/auth-permissions.service';
 import { ConfigurationService } from '../../core/services/configuration.service';
 import { User } from '../../core/models/user.model';
 import { BusinessConfiguration } from '../../core/models/configuration.model';
@@ -16,6 +17,7 @@ import { BusinessConfiguration } from '../../core/models/configuration.model';
 })
 export class LayoutComponent implements OnInit {
   authService = inject(AuthService); // Exponer para usar en template
+  authPermissionsService = inject(AuthPermissionsService); // Exponer para verificar permisos
   private configService = inject(ConfigurationService);
   private titleService = inject(Title);
   private cdr = inject(ChangeDetectorRef);
@@ -90,6 +92,68 @@ export class LayoutComponent implements OnInit {
   
   logout(): void {
     this.authService.logout();
+  }
+  
+  // Métodos de verificación de permisos para módulos del menú
+  canAccessDashboard(): boolean {
+    return this.authPermissionsService.hasPermission('dashboard.view');
+  }
+  
+  canAccessInventory(): boolean {
+    return this.authPermissionsService.hasAnyPermission([
+      'inventory.view', 
+      'inventory.manage',
+      'products.view',
+      'products.create',
+      'products.edit',
+      'products.delete'
+    ]);
+  }
+  
+  canAccessMenu(): boolean {
+    return this.authPermissionsService.hasAnyPermission([
+      'menu.view', 
+      'menu.create', 
+      'menu.edit',
+      'menu.delete'
+    ]);
+  }
+  
+  canAccessTables(): boolean {
+    return this.authPermissionsService.hasAnyPermission([
+      'tables.view', 
+      'tables.manage'
+    ]);
+  }
+  
+  canAccessOrders(): boolean {
+    return this.authPermissionsService.hasAnyPermission([
+      'orders.view', 
+      'orders.create', 
+      'orders.edit',
+      'orders.delete',
+      'orders.change_status',
+      'orders.process_payment'
+    ]);
+  }
+  
+  canAccessUsers(): boolean {
+    return this.authPermissionsService.hasAnyPermission([
+      'users.view', 
+      'users.create', 
+      'users.edit',
+      'users.delete',
+      'users.manage_permissions'
+    ]);
+  }
+  
+  canAccessConfiguration(): boolean {
+    return this.authPermissionsService.hasAnyPermission([
+      'config.view', 
+      'config.edit', 
+      'config.manage_roles',
+      'config.manage_payment_methods'
+    ]);
   }
 }
 

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { MenuService } from '../../core/services/menu.service';
 import { ProductService } from '../../core/services/product.service';
+import { AuthPermissionsService } from '../../core/services/auth-permissions.service';
 import { MenuItem, MenuCategory, MenuItemCreate, MenuCategoryCreate, IngredientItem } from '../../core/models/menu.model';
 import { Product } from '../../core/models/product.model';
 import { TooltipDirective } from '../../shared/directives/tooltip.directive';
@@ -19,6 +20,7 @@ import { UploadService } from '../../core/services/upload.service';
 export class MenuComponent implements OnInit {
   private menuService = inject(MenuService);
   private productService = inject(ProductService);
+  private authPermissionsService = inject(AuthPermissionsService);
   private fb = inject(FormBuilder);
   public uploadService = inject(UploadService);
   
@@ -263,6 +265,23 @@ export class MenuComponent implements OnInit {
     };
     
     return units[product.unit_type] || '';
+  }
+  
+  // Métodos de verificación de permisos
+  canViewMenu(): boolean {
+    return this.authPermissionsService.hasPermission('menu.view');
+  }
+  
+  canCreateMenu(): boolean {
+    return this.authPermissionsService.hasPermission('menu.create');
+  }
+  
+  canEditMenu(): boolean {
+    return this.authPermissionsService.hasPermission('menu.edit');
+  }
+  
+  canDeleteMenu(): boolean {
+    return this.authPermissionsService.hasPermission('menu.delete');
   }
 }
 
