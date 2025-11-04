@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { OrderService } from '../../core/services/order.service';
 import { ProductService } from '../../core/services/product.service';
@@ -33,6 +34,7 @@ export class OrdersComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private confirmService = inject(ConfirmService);
   private authPermissionsService = inject(AuthPermissionsService);
+  public router = inject(Router);
   
   orders: Order[] = [];
   products: Product[] = [];
