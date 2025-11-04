@@ -130,7 +130,9 @@ export class CashierPosComponent implements OnInit, OnDestroy {
   }
   
   get allCategories(): any[] {
-    return [...this.productCategories, ...this.menuCategories];
+    const productCats = this.productCategories.map(c => ({ ...c, _type: 'product' }));
+    const menuCats = this.menuCategories.map(c => ({ ...c, _type: 'menu' }));
+    return [...productCats, ...menuCats];
   }
   
   selectTable(table: Table): void {
@@ -166,6 +168,14 @@ export class CashierPosComponent implements OnInit, OnDestroy {
   
   selectCategory(category: any): void {
     this.selectedCategory = category;
+  }
+  
+  isCategorySelected(category: any): boolean {
+    if (!this.selectedCategory) return false;
+    
+    // Verificar si es la misma categoría (mismo ID y mismo tipo)
+    return this.selectedCategory.id === category.id && 
+           this.selectedCategory._type === category._type;
   }
   
   addItem(item: MenuItem | Product): void {
@@ -387,9 +397,9 @@ export class CashierPosComponent implements OnInit, OnDestroy {
   }
   
   getItemsByCategory(categoryId: number): (MenuItem | Product)[] {
-    const isMenuCategory = this.menuCategories.some(c => c.id === categoryId);
+    if (!this.selectedCategory) return [];
     
-    if (isMenuCategory) {
+    if (this.selectedCategory._type === 'menu') {
       return this.menuItems.filter(m => m.category_id === categoryId && m.is_available);
     } else {
       return this.products.filter(p => p.category_id === categoryId && p.show_in_catalog === true);
