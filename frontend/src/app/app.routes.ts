@@ -11,6 +11,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent)
   },
   {
+    path: 'cashier-pos',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/cashier-pos/cashier-pos.component').then(m => m.CashierPosComponent)
+  },
+  {
     path: 'catalog/:slug',
     loadComponent: () => import('./features/public-catalog/public-catalog.component').then(m => m.PublicCatalogComponent)
   },

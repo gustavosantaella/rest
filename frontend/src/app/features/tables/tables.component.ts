@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TableService } from '../../core/services/table.service';
 import { OrderService } from '../../core/services/order.service';
 import { ProductService } from '../../core/services/product.service';
@@ -31,6 +31,7 @@ export class TablesComponent implements OnInit, OnDestroy {
   private paymentMethodService = inject(PaymentMethodService);
   private notificationService = inject(NotificationService);
   private authPermissionsService = inject(AuthPermissionsService);
+  router = inject(Router); // Público para usar en el template
   private fb = inject(FormBuilder);
   
   tables: Table[] = [];
@@ -67,6 +68,7 @@ export class TablesComponent implements OnInit, OnDestroy {
   orderPayments: OrderPayment[] = [];
   paymentForm!: FormGroup;
   activePaymentMethods: PaymentMethodModel[] = [];
+  
   
   tableStatuses = Object.values(TableStatus);
   statusLabels: Record<TableStatus, string> = {
@@ -509,6 +511,10 @@ export class TablesComponent implements OnInit, OnDestroy {
     return sourceType === 'menu' ? this.menuCategories : this.productCategories;
   }
   
+  get allCategories(): any[] {
+    return [...this.productCategories, ...this.menuCategories];
+  }
+  
   get currentItems(): (MenuItem | Product)[] {
     if (!this.selectedCategory) return [];
     const item = this.currentItemIndex !== null ? this.addItemsArray.at(this.currentItemIndex) : null;
@@ -701,5 +707,6 @@ export class TablesComponent implements OnInit, OnDestroy {
   hasValidPayments(): boolean {
     return this.orderPayments.some(p => p.payment_method_id > 0 && p.amount > 0);
   }
+  
 }
 

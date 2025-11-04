@@ -1,6 +1,10 @@
-// Additional styles if needed
+// Estilos para vista POS
+:host {
+  display: block;
+  height: 100vh;
+  overflow: hidden;
+}
 
-// Line clamp para descripción de productos
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -8,17 +12,12 @@
   overflow: hidden;
 }
 
-// Smooth transitions
+// Smooth transitions para imágenes
 .group:hover .group-hover\:scale-110 {
   transform: scale(1.1);
 }
 
-// POS View styles
-:host ::ng-deep .pos-view {
-  height: calc(100vh - 64px);
-}
-
-// Números de input en POS
+// Números de input más visibles
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   opacity: 1;
