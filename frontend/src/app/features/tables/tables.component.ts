@@ -49,6 +49,15 @@ export class TablesComponent implements OnInit, OnDestroy {
   menuItems: MenuItem[] = [];
   showMenuItems = false; // Para cambiar entre productos y menú
   
+  // Categorías
+  productCategories: any[] = [];
+  menuCategories: any[] = [];
+  
+  // Para el selector de categoría y productos
+  currentItemIndex: number | null = null;
+  selectedCategory: any = null;
+  showCategorySelector = false;
+  
   tableStatuses = Object.values(TableStatus);
   statusLabels: Record<TableStatus, string> = {
     [TableStatus.AVAILABLE]: 'Disponible',
@@ -66,6 +75,8 @@ export class TablesComponent implements OnInit, OnDestroy {
     this.loadTables();
     this.loadProducts();
     this.loadMenuItems();
+    this.loadProductCategories();
+    this.loadMenuCategories();
     
     // Actualizar cada 10 segundos para reflejar cambios de órdenes
     this.refreshInterval = setInterval(() => {
@@ -309,7 +320,7 @@ export class TablesComponent implements OnInit, OnDestroy {
   }
   
   get availableProducts(): Product[] {
-    return this.products;
+    return this.products.filter(p => p.show_in_catalog === true);
   }
   
   getItemPrice(item: any): number {
@@ -416,6 +427,109 @@ export class TablesComponent implements OnInit, OnDestroy {
       },
       error: () => {}
     });
+  }
+  
+  loadProductCategories(): void {
+    this.productService.getCategories().subscribe({
+      next: (categories) => {
+        this.productCategories = categories;
+      },
+      error: () => {}
+    });
+  }
+  
+  loadMenuCategories(): void {
+    this.menuService.getCategories().subscribe({
+      next: (categories) => {
+        this.menuCategories = categories;
+      },
+      error: () => {}
+    });
+  }
+  
+  // Métodos para selección de categoría y productos
+  openCategorySelector(index: number): void {
+    this.currentItemIndex = index;
+    this.selectedCategory = null;
+    this.showCategorySelector = true;
+  }
+  
+  closeCategorySelector(): void {
+    this.showCategorySelector = false;
+    this.currentItemIndex = null;
+    this.selectedCategory = null;
+  }
+  
+  selectCategory(category: any): void {
+    this.selectedCategory = category;
+  }
+  
+  selectItem(itemId: number, itemType: 'menu' | 'product'): void {
+    if (this.currentItemIndex !== null) {
+      const item = this.addItemsArray.at(this.currentItemIndex);
+      item.patchValue({
+        product_id: itemId,
+        source_type: itemType
+      });
+      this.closeCategorySelector();
+    }
+  }
+  
+  getProductsByCategory(categoryId: number): Product[] {
+    return this.products.filter(p => p.category_id === categoryId && p.show_in_catalog === true);
+  }
+  
+  getMenuItemsByCategory(categoryId: number): MenuItem[] {
+    return this.menuItems.filter(m => m.category_id === categoryId && m.is_available);
+  }
+  
+  getCurrentCategories() {
+    const item = this.currentItemIndex !== null ? this.addItemsArray.at(this.currentItemIndex) : null;
+    const sourceType = item?.get('source_type')?.value;
+    return sourceType === 'menu' ? this.menuCategories : this.productCategories;
+  }
+  
+  get currentItems(): (MenuItem | Product)[] {
+    if (!this.selectedCategory) return [];
+    const item = this.currentItemIndex !== null ? this.addItemsArray.at(this.currentItemIndex) : null;
+    const sourceType = item?.get('source_type')?.value;
+    
+    if (sourceType === 'menu') {
+      return this.getMenuItemsByCategory(this.selectedCategory.id);
+    } else {
+      return this.getProductsByCategory(this.selectedCategory.id);
+    }
+  }
+  
+  getItemDisplayPrice(item: any): number {
+    return item.price !== undefined ? item.price : item.sale_price;
+  }
+  
+  hasStock(item: any): boolean {
+    return item.stock !== undefined;
+  }
+  
+  getItemStock(item: any): number {
+    return item.stock || 0;
+  }
+  
+  isMenuItem(item: any): boolean {
+    return item.price !== undefined;
+  }
+  
+  getSelectedItemName(itemForm: any): string {
+    const productId = itemForm.get('product_id')?.value;
+    const sourceType = itemForm.get('source_type')?.value;
+    
+    if (!productId) return 'Ninguno seleccionado';
+    
+    if (sourceType === 'menu') {
+      const menuItem = this.menuItems.find(m => m.id === Number(productId));
+      return menuItem ? menuItem.name : 'Item no encontrado';
+    } else {
+      const product = this.products.find(p => p.id === Number(productId));
+      return product ? product.name : 'Producto no encontrado';
+    }
   }
 }
 
