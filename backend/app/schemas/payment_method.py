@@ -53,6 +53,7 @@ class PaymentMethodUpdate(BaseModel):
 
 class PaymentMethodResponse(PaymentMethodBase):
     id: int
+    business_id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
     

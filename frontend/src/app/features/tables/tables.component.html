@@ -74,10 +74,13 @@
         </select>
       </div>
       
-      <!-- Botón Ver Orden para mesa ocupada -->
-      <div *ngIf="table.status === 'occupied'" class="mt-3" (click)="$event.stopPropagation()">
+      <!-- Botones para mesa ocupada -->
+      <div *ngIf="table.status === 'occupied'" class="mt-3 space-y-2" (click)="$event.stopPropagation()">
         <button (click)="viewOrder(table)" class="btn-info text-sm py-2 w-full">
           👁️ Ver Orden
+        </button>
+        <button (click)="openPaymentModal(table)" class="btn-success text-sm py-2 w-full">
+          💳 Pagar
         </button>
       </div>
       
@@ -478,6 +481,248 @@
           </svg>
           <p class="text-gray-500">No hay items en esta categoría</p>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Pago -->
+<div *ngIf="showPaymentModal && orderToPay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4" (click)="closePaymentModal()">
+  <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">💳 Procesar Pago - Mesa {{ selectedTable?.number }}</h2>
+          <p class="text-sm text-gray-600 mt-1">Orden #{{ orderToPay.id }}</p>
+        </div>
+        <button (click)="closePaymentModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Order Summary -->
+      <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200">
+        <h3 class="font-bold mb-3 text-lg">Resumen de la Orden</h3>
+        
+        <!-- Items -->
+        <div class="space-y-2 mb-4">
+          <div *ngFor="let item of orderToPay.items" class="flex justify-between text-sm">
+            <span>{{ item.quantity }}x {{ getItemName(item) }}</span>
+            <span class="font-medium">${{ item.subtotal.toFixed(2) }}</span>
+          </div>
+        </div>
+        
+        <!-- Totals -->
+        <div class="border-t pt-3 space-y-1">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Subtotal:</span>
+            <span>${{ orderToPay.subtotal.toFixed(2) }}</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Impuestos:</span>
+            <span>${{ orderToPay.tax.toFixed(2) }}</span>
+          </div>
+          <div class="flex justify-between text-lg font-bold border-t pt-2">
+            <span>Total:</span>
+            <span class="text-green-600">${{ orderToPay.total.toFixed(2) }}</span>
+          </div>
+        </div>
+        
+        <!-- Already Paid -->
+        <div *ngIf="getAlreadyPaid(orderToPay) > 0" class="mt-3 p-3 bg-white rounded border-2 border-blue-300">
+          <div class="flex justify-between font-medium">
+            <span class="text-blue-700">Ya pagado:</span>
+            <span class="text-blue-700">${{ getAlreadyPaid(orderToPay).toFixed(2) }}</span>
+          </div>
+          <div class="flex justify-between font-bold text-lg mt-1">
+            <span class="text-orange-600">Restante:</span>
+            <span class="text-orange-600">${{ getRemainingToPay(orderToPay).toFixed(2) }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Customer Info Form (Optional) -->
+      <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
+        <h4 class="font-medium text-gray-700 mb-3">Datos del Cliente (Opcional)</h4>
+        <form [formGroup]="paymentForm">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <input 
+                type="text" 
+                formControlName="customer_name" 
+                class="input-field"
+                placeholder="Nombre del cliente"
+                appTooltip="Nombre del cliente para facturación o seguimiento."
+                tooltipPosition="top"
+              />
+            </div>
+            <div>
+              <input 
+                type="email" 
+                formControlName="customer_email" 
+                class="input-field"
+                placeholder="Email"
+                appTooltip="Email para enviar comprobante electrónico."
+                tooltipPosition="top"
+              />
+            </div>
+            <div>
+              <input 
+                type="tel" 
+                formControlName="customer_phone" 
+                class="input-field"
+                placeholder="Teléfono"
+                appTooltip="Teléfono de contacto del cliente."
+                tooltipPosition="top"
+              />
+            </div>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Payment Methods -->
+      <div class="mb-6 p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border-2 border-green-200">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gray-800 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+            </svg>
+            Métodos de Pago
+          </h3>
+          <button type="button" (click)="addPayment()" class="btn-secondary text-sm py-2">
+            + Agregar Método
+          </button>
+        </div>
+        
+        <!-- Payment List -->
+        <div class="space-y-3 mb-4">
+          <div *ngFor="let payment of orderPayments; let i = index" 
+               class="flex items-center space-x-2 p-3 bg-white rounded-lg border shadow-sm">
+            
+            <div class="flex-1">
+              <select 
+                [(ngModel)]="payment.payment_method_id"
+                [ngModelOptions]="{standalone: true}"
+                class="input-field w-full"
+                appTooltip="Selecciona el método de pago."
+                tooltipPosition="top"
+              >
+                <option value="0">Seleccionar método...</option>
+                <option *ngFor="let method of activePaymentMethods" [value]="method.id">
+                  {{ getPaymentMethodIcon(method.type) }} {{ method.name }}
+                </option>
+              </select>
+            </div>
+            
+            <div class="w-32">
+              <input 
+                type="number" 
+                [(ngModel)]="payment.amount"
+                [ngModelOptions]="{standalone: true}"
+                placeholder="Monto"
+                step="0.01"
+                min="0"
+                class="input-field w-full text-right font-bold"
+                appTooltip="Monto a pagar con este método."
+                tooltipPosition="top"
+              />
+            </div>
+            
+            <div class="w-44">
+              <input 
+                type="text" 
+                [(ngModel)]="payment.reference"
+                [ngModelOptions]="{standalone: true}"
+                placeholder="Referencia"
+                class="input-field w-full text-sm"
+                appTooltip="Número de referencia o comprobante."
+                tooltipPosition="top"
+              />
+            </div>
+            
+            <button 
+              type="button"
+              (click)="removePayment(i)" 
+              class="btn-danger px-3 py-2 disabled:opacity-30"
+              [disabled]="orderPayments.length === 1"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Empty State -->
+          <div *ngIf="orderPayments.length === 0" class="text-center py-8">
+            <p class="text-gray-500 mb-3">No hay pagos agregados</p>
+            <button type="button" (click)="addPayment()" class="btn-primary">
+              + Agregar Primer Pago
+            </button>
+          </div>
+        </div>
+        
+        <!-- Payment Summary -->
+        <div class="p-4 bg-white rounded-lg border-2 shadow"
+             [class.border-green-500]="calculatePaidAmount() >= getRemainingToPay(orderToPay)"
+             [class.border-yellow-500]="calculatePaidAmount() < getRemainingToPay(orderToPay) && calculatePaidAmount() > 0"
+             [class.border-red-500]="calculatePaidAmount() > getRemainingToPay(orderToPay) + 0.01">
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="font-medium text-gray-700">Total a pagar:</span>
+              <span class="text-xl font-bold text-gray-900">
+                ${{ getRemainingToPay(orderToPay).toFixed(2) }}
+              </span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="font-medium text-gray-700">Total en métodos:</span>
+              <span class="text-xl font-bold" 
+                    [class.text-green-600]="calculatePaidAmount() === getRemainingToPay(orderToPay)"
+                    [class.text-yellow-600]="calculatePaidAmount() < getRemainingToPay(orderToPay)"
+                    [class.text-red-600]="calculatePaidAmount() > getRemainingToPay(orderToPay)">
+                ${{ calculatePaidAmount().toFixed(2) }}
+              </span>
+            </div>
+            <div class="flex justify-between items-center pt-2 border-t-2">
+              <span class="font-bold text-gray-800">Estado:</span>
+              <span *ngIf="calculatePaidAmount() >= getRemainingToPay(orderToPay) - 0.01 && calculatePaidAmount() <= getRemainingToPay(orderToPay) + 0.01" 
+                    class="flex items-center text-green-600 font-bold">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Completo
+              </span>
+              <span *ngIf="calculatePaidAmount() < getRemainingToPay(orderToPay) - 0.01" class="flex items-center text-yellow-600 font-bold">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                Faltan: ${{ (getRemainingToPay(orderToPay) - calculatePaidAmount()).toFixed(2) }}
+              </span>
+              <span *ngIf="calculatePaidAmount() > getRemainingToPay(orderToPay) + 0.01" class="flex items-center text-red-600 font-bold">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Sobran: ${{ (calculatePaidAmount() - getRemainingToPay(orderToPay)).toFixed(2) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Actions -->
+      <div class="mt-6 flex justify-end space-x-3">
+        <button type="button" (click)="closePaymentModal()" class="btn-secondary">
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          (click)="processPayment()" 
+          class="btn-success"
+          [disabled]="!hasValidPayments()"
+        >
+          Registrar Pago
+        </button>
       </div>
     </div>
   </div>

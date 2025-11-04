@@ -6,12 +6,14 @@ import { TableService } from '../../core/services/table.service';
 import { OrderService } from '../../core/services/order.service';
 import { ProductService } from '../../core/services/product.service';
 import { MenuService } from '../../core/services/menu.service';
+import { PaymentMethodService } from '../../core/services/payment-method.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { AuthPermissionsService } from '../../core/services/auth-permissions.service';
 import { Table, TableStatus, TableCreate } from '../../core/models/table.model';
-import { Order, OrderItem, UpdateOrderItems } from '../../core/models/order.model';
+import { Order, OrderItem, UpdateOrderItems, AddPaymentsToOrder, OrderPayment } from '../../core/models/order.model';
 import { Product } from '../../core/models/product.model';
 import { MenuItem } from '../../core/models/menu.model';
+import { PaymentMethod as PaymentMethodModel } from '../../core/models/payment-method.model';
 import { TooltipDirective } from '../../shared/directives/tooltip.directive';
 
 @Component({
@@ -26,6 +28,7 @@ export class TablesComponent implements OnInit, OnDestroy {
   private orderService = inject(OrderService);
   private productService = inject(ProductService);
   private menuService = inject(MenuService);
+  private paymentMethodService = inject(PaymentMethodService);
   private notificationService = inject(NotificationService);
   private authPermissionsService = inject(AuthPermissionsService);
   private fb = inject(FormBuilder);
@@ -58,6 +61,13 @@ export class TablesComponent implements OnInit, OnDestroy {
   selectedCategory: any = null;
   showCategorySelector = false;
   
+  // Modal de Pago
+  showPaymentModal = false;
+  orderToPay: Order | null = null;
+  orderPayments: OrderPayment[] = [];
+  paymentForm!: FormGroup;
+  activePaymentMethods: PaymentMethodModel[] = [];
+  
   tableStatuses = Object.values(TableStatus);
   statusLabels: Record<TableStatus, string> = {
     [TableStatus.AVAILABLE]: 'Disponible',
@@ -69,6 +79,15 @@ export class TablesComponent implements OnInit, OnDestroy {
   constructor() {
     this.initForm();
     this.initAddItemsForm();
+    this.initPaymentForm();
+  }
+  
+  initPaymentForm(): void {
+    this.paymentForm = this.fb.group({
+      customer_name: [''],
+      customer_email: ['', Validators.email],
+      customer_phone: ['']
+    });
   }
   
   ngOnInit(): void {
@@ -77,10 +96,11 @@ export class TablesComponent implements OnInit, OnDestroy {
     this.loadMenuItems();
     this.loadProductCategories();
     this.loadMenuCategories();
+    this.loadPaymentMethods();
     
     // Actualizar cada 10 segundos para reflejar cambios de órdenes
     this.refreshInterval = setInterval(() => {
-      if (!this.showModal && !this.showOrderModal && !this.showAddItemsModal) {
+      if (!this.showModal && !this.showOrderModal && !this.showAddItemsModal && !this.showPaymentModal) {
         this.loadTables();
       }
     }, 10000);
@@ -530,6 +550,156 @@ export class TablesComponent implements OnInit, OnDestroy {
       const product = this.products.find(p => p.id === Number(productId));
       return product ? product.name : 'Producto no encontrado';
     }
+  }
+  
+  loadPaymentMethods(): void {
+    this.paymentMethodService.getPaymentMethods().subscribe({
+      next: (methods) => {
+        this.activePaymentMethods = methods.filter(m => m.is_active);
+      },
+      error: () => {}
+    });
+  }
+  
+  // Métodos de Pago
+  openPaymentModal(table: Table): void {
+    if (table.status !== TableStatus.OCCUPIED) {
+      this.notificationService.warning('Esta mesa no tiene orden activa');
+      return;
+    }
+    
+    this.selectedTable = table;
+    this.orderService.getOrderByTable(table.id).subscribe({
+      next: (order: Order | null) => {
+        if (!order) {
+          this.notificationService.error('No se pudo cargar la orden');
+          return;
+        }
+        
+        this.orderToPay = order;
+        
+        // Calcular cuánto falta por pagar
+        const alreadyPaid = order.payments?.reduce((sum, p) => sum + p.amount, 0) || 0;
+        const remaining = order.total - alreadyPaid;
+        
+        // Iniciar con un pago por el monto restante
+        this.orderPayments = [
+          {
+            payment_method_id: 0,
+            amount: remaining,
+            reference: ''
+          }
+        ];
+        
+        // Reset form de cliente
+        this.paymentForm.patchValue({
+          customer_name: order.customer_name || '',
+          customer_email: order.customer_email || '',
+          customer_phone: order.customer_phone || ''
+        });
+        
+        this.showPaymentModal = true;
+      },
+      error: (err) => {
+        this.notificationService.error('Error: ' + (err.error?.detail || 'No se pudo cargar la orden'));
+      }
+    });
+  }
+  
+  closePaymentModal(): void {
+    this.showPaymentModal = false;
+    this.orderToPay = null;
+    this.orderPayments = [];
+    this.selectedTable = null;
+  }
+  
+  addPayment(): void {
+    this.orderPayments.push({
+      payment_method_id: 0,
+      amount: 0,
+      reference: ''
+    });
+  }
+  
+  removePayment(index: number): void {
+    this.orderPayments.splice(index, 1);
+  }
+  
+  processPayment(): void {
+    if (!this.orderToPay) return;
+    
+    // Filtrar pagos válidos
+    const validPayments = this.orderPayments.filter(p => p.payment_method_id > 0 && p.amount > 0);
+    
+    if (validPayments.length === 0) {
+      this.notificationService.warning('Debe agregar al menos un método de pago');
+      return;
+    }
+    
+    // Calcular totales
+    const alreadyPaid = this.orderToPay.payments?.reduce((sum, p) => sum + p.amount, 0) || 0;
+    const newPaymentsTotal = validPayments.reduce((sum, p) => sum + p.amount, 0);
+    const totalAfterPayments = alreadyPaid + newPaymentsTotal;
+    
+    // Validar que no exceda
+    if (totalAfterPayments > this.orderToPay.total + 0.01) {
+      this.notificationService.error(`Los pagos exceden el total.\n\nYa pagado: $${alreadyPaid.toFixed(2)}\nNuevo: $${newPaymentsTotal.toFixed(2)}\nTotal orden: $${this.orderToPay.total.toFixed(2)}`);
+      return;
+    }
+    
+    // Preparar datos
+    const paymentData: AddPaymentsToOrder = {
+      payments: validPayments
+    };
+    
+    // Actualizar datos del cliente si se llenaron
+    const customerData = this.paymentForm.value;
+    if (customerData.customer_name || customerData.customer_email || customerData.customer_phone) {
+      this.orderService.updateOrder(this.orderToPay.id, {
+        customer_name: customerData.customer_name || undefined,
+        customer_email: customerData.customer_email || undefined,
+        customer_phone: customerData.customer_phone || undefined
+      }).subscribe();
+    }
+    
+    // Agregar pagos
+    this.orderService.addPaymentsToOrder(this.orderToPay.id, paymentData).subscribe({
+      next: () => {
+        this.loadTables();
+        this.closePaymentModal();
+        this.notificationService.success('Pago registrado exitosamente');
+      },
+      error: (err) => {
+        this.notificationService.error('Error al procesar el pago: ' + (err.error?.detail || 'Error desconocido'));
+      }
+    });
+  }
+  
+  getAlreadyPaid(order: Order): number {
+    return order.payments?.reduce((sum, p) => sum + p.amount, 0) || 0;
+  }
+  
+  getRemainingToPay(order: Order): number {
+    return order.total - this.getAlreadyPaid(order);
+  }
+  
+  getPaymentMethodIcon(type: string): string {
+    const icons: Record<string, string> = {
+      'cash': '💵',
+      'card': '💳',
+      'transfer': '🏦',
+      'mobile_payment': '📱',
+      'other': '💰'
+    };
+    return icons[type] || '💰';
+  }
+  
+  calculatePaidAmount(): number {
+    return this.orderPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  }
+  
+  hasValidPayments(): boolean {
+    return this.orderPayments.some(p => p.payment_method_id > 0 && p.amount > 0);
   }
 }
 

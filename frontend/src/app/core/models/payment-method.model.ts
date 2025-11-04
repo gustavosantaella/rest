@@ -9,6 +9,7 @@ export enum PaymentMethodType {
 
 export interface PaymentMethod {
   id: number;
+  business_id: number;
   name: string;
   type: PaymentMethodType;
   phone?: string;
