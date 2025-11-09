@@ -5,14 +5,16 @@ import { Title } from '@angular/platform-browser';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthPermissionsService } from '../../core/services/auth-permissions.service';
 import { ConfigurationService } from '../../core/services/configuration.service';
+import { TutorialService } from '../../core/services/tutorial.service';
 import { User } from '../../core/models/user.model';
 import { BusinessConfiguration } from '../../core/models/configuration.model';
 import { ConnectionIndicatorComponent } from '../../shared/components/connection-indicator/connection-indicator.component';
+import { TutorialComponent } from '../../shared/components/tutorial/tutorial.component';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ConnectionIndicatorComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ConnectionIndicatorComponent, TutorialComponent],
   templateUrl: './layout.component.html',
   styleUrls: ['./layout.component.scss']
 })
@@ -21,6 +23,7 @@ export class LayoutComponent implements OnInit {
   authPermissionsService = inject(AuthPermissionsService); // Exponer para verificar permisos
   private configService = inject(ConfigurationService);
   private titleService = inject(Title);
+  private tutorialService = inject(TutorialService);
   private cdr = inject(ChangeDetectorRef);
   
   currentUser: User | null = null;
@@ -29,6 +32,7 @@ export class LayoutComponent implements OnInit {
   sidebarOpen = true;
   configDropdownOpen = false;
   accountsDropdownOpen = false;
+  showWelcomeModal = false;
   
   constructor() {}
   
@@ -37,11 +41,39 @@ export class LayoutComponent implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       console.log('👤 Layout - Usuario actualizado:', user);
       this.currentUser = user;
+      
+      // Verificar si es la primera vez del usuario (después de un pequeño delay)
+      if (user) {
+        setTimeout(() => this.checkFirstTimeUser(), 1000);
+      }
+      
       // Marcar para verificar cambios (más seguro que detectChanges)
       this.cdr.markForCheck();
     });
     
     this.loadBusinessName();
+  }
+  
+  checkFirstTimeUser(): void {
+    // Verificar si el usuario NO ha completado ni saltado el tutorial
+    if (!this.tutorialService.hasCompletedTutorial() && !this.tutorialService.hasSkippedTutorial()) {
+      this.showWelcomeModal = true;
+    }
+  }
+  
+  startTutorial(): void {
+    this.showWelcomeModal = false;
+    this.tutorialService.startTutorial();
+  }
+  
+  skipWelcome(): void {
+    this.showWelcomeModal = false;
+    this.tutorialService.markAsSkipped();
+  }
+  
+  restartTutorial(): void {
+    this.tutorialService.resetTutorial();
+    this.tutorialService.startTutorial();
   }
   
   loadBusinessName(): void {

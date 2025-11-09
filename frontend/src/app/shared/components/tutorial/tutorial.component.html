@@ -1,0 +1,62 @@
+<div *ngIf="isActive" class="tutorial-overlay">
+  <!-- Fondo oscuro semi-transparente -->
+  <div class="tutorial-backdrop" (click)="onSkip()"></div>
+  
+  <!-- Tooltip/Card explicativo -->
+  <div 
+    *ngIf="currentStep"
+    class="tutorial-tooltip"
+    [class.tutorial-tooltip-center]="isCenterPosition()"
+    [ngStyle]="!isCenterPosition() ? tooltipPosition : {}">
+    
+    <!-- Header -->
+    <div class="tutorial-header">
+      <h3 class="tutorial-title">{{ currentStep.title }}</h3>
+      <button (click)="onSkip()" class="tutorial-close" title="Cerrar tutorial">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Content -->
+    <div class="tutorial-content">
+      <p>{{ currentStep.description }}</p>
+    </div>
+    
+    <!-- Footer con controles -->
+    <div class="tutorial-footer">
+      <div class="tutorial-progress">
+        <span class="tutorial-step-counter">{{ stepInfo.current }} / {{ stepInfo.total }}</span>
+        <div class="tutorial-progress-bar">
+          <div 
+            class="tutorial-progress-fill" 
+            [style.width.%]="(stepInfo.current / stepInfo.total) * 100">
+          </div>
+        </div>
+      </div>
+      
+      <div class="tutorial-actions">
+        <button 
+          *ngIf="!isFirstStep()" 
+          (click)="onPrevious()" 
+          class="tutorial-btn tutorial-btn-secondary">
+          ← Anterior
+        </button>
+        
+        <button 
+          (click)="onSkip()" 
+          class="tutorial-btn tutorial-btn-ghost">
+          Saltar tutorial
+        </button>
+        
+        <button 
+          (click)="onNext()" 
+          class="tutorial-btn tutorial-btn-primary">
+          {{ isLastStep() ? 'Finalizar' : 'Siguiente' }} →
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

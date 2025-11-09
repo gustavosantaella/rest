@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } 
 import { ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { TutorialService } from '../../core/services/tutorial.service';
 import { User, UserRole } from '../../core/models/user.model';
 import { TooltipDirective } from '../../shared/directives/tooltip.directive';
 
@@ -19,6 +20,7 @@ export class ProfileComponent implements OnInit {
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
   private notificationService = inject(NotificationService);
+  private tutorialService = inject(TutorialService);
   
   currentUser: User | null = null;
   profileForm!: FormGroup;
@@ -175,6 +177,12 @@ export class ProfileComponent implements OnInit {
         this.notificationService.error('Error: ' + (err.error?.detail || 'Error al eliminar la cuenta'));
       }
     });
+  }
+  
+  restartTutorial(): void {
+    this.tutorialService.resetTutorial();
+    this.tutorialService.startTutorial();
+    this.notificationService.success('Tutorial iniciado. Te guiaremos paso a paso.');
   }
 }
 
