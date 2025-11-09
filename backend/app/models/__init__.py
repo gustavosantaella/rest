@@ -8,6 +8,7 @@ from .payment_method import PaymentMethod, PaymentMethodType
 from .order_payment import OrderPayment
 from .permission import UserPermission
 from .role_permission import Role, Permission, role_permissions, user_roles
+from .customer import Customer
 
 __all__ = [
     "User",
@@ -31,4 +32,5 @@ __all__ = [
     "Permission",
     "role_permissions",
     "user_roles",
+    "Customer",
 ]

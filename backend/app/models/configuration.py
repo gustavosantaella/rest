@@ -33,6 +33,7 @@ class BusinessConfiguration(Base):
     # Relaciones
     partners = relationship("Partner", back_populates="business", cascade="all, delete-orphan")
     users = relationship("User", back_populates="business")
+    customers = relationship("Customer", back_populates="business")
 
 
 class Partner(Base):

@@ -1,0 +1,56 @@
+<div class="connection-indicator" [class.offline]="!isOnline" [class.syncing]="isSyncing">
+  <div class="indicator-badge" (click)="toggleDetails()">
+    <!-- Icono de estado -->
+    <div class="status-icon">
+      <span *ngIf="isOnline && !isSyncing">🟢</span>
+      <span *ngIf="isOnline && isSyncing" class="animate-spin">🔄</span>
+      <span *ngIf="!isOnline">🔴</span>
+    </div>
+
+    <!-- Texto de estado -->
+    <div class="status-text">
+      <span *ngIf="isOnline && !isSyncing">En línea</span>
+      <span *ngIf="isOnline && isSyncing">Sincronizando...</span>
+      <span *ngIf="!isOnline">Sin conexión</span>
+    </div>
+
+    <!-- Contador de pendientes -->
+    <div class="pending-badge" *ngIf="pendingCount > 0">
+      {{ pendingCount }}
+    </div>
+  </div>
+
+  <!-- Panel de detalles -->
+  <div class="details-panel" *ngIf="showDetails">
+    <div class="detail-item">
+      <strong>Estado:</strong>
+      <span *ngIf="isOnline" class="text-green-600">Conectado</span>
+      <span *ngIf="!isOnline" class="text-red-600">Desconectado</span>
+    </div>
+
+    <div class="detail-item" *ngIf="!isOnline">
+      <div class="text-yellow-600">
+        ⚠️ Los cambios se guardarán localmente y se sincronizarán cuando haya conexión.
+      </div>
+    </div>
+
+    <div class="detail-item" *ngIf="pendingCount > 0">
+      <strong>Operaciones pendientes:</strong>
+      <span class="text-blue-600">{{ pendingCount }}</span>
+    </div>
+
+    <div class="detail-item" *ngIf="isSyncing">
+      <div class="text-blue-600">
+        🔄 Sincronizando datos...
+      </div>
+    </div>
+
+    <button 
+      *ngIf="isOnline && !isSyncing && pendingCount > 0"
+      (click)="forceSyncNow()"
+      class="sync-button">
+      Sincronizar ahora
+    </button>
+  </div>
+</div>
+

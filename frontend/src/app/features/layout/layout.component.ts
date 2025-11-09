@@ -7,11 +7,12 @@ import { AuthPermissionsService } from '../../core/services/auth-permissions.ser
 import { ConfigurationService } from '../../core/services/configuration.service';
 import { User } from '../../core/models/user.model';
 import { BusinessConfiguration } from '../../core/models/configuration.model';
+import { ConnectionIndicatorComponent } from '../../shared/components/connection-indicator/connection-indicator.component';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ConnectionIndicatorComponent],
   templateUrl: './layout.component.html',
   styleUrls: ['./layout.component.scss']
 })

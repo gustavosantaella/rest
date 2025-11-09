@@ -14,6 +14,7 @@ interface DashboardStats {
   availableTables: number;
   lowStockProducts: number;
   todayRevenue: number;
+  totalRevenue: number;
 }
 
 @Component({
@@ -33,7 +34,8 @@ export class DashboardComponent implements OnInit {
     pendingOrders: 0,
     availableTables: 0,
     lowStockProducts: 0,
-    todayRevenue: 0
+    todayRevenue: 0,
+    totalRevenue: 0
   };
   
   recentOrders: Order[] = [];
@@ -53,10 +55,27 @@ export class DashboardComponent implements OnInit {
         this.stats.pendingOrders = orders.filter(o => 
           o.status === OrderStatus.PENDING || o.status === OrderStatus.PREPARING
         ).length;
-        // Revenue de órdenes con payment_status = 'paid'
-        this.stats.todayRevenue = orders
+        
+        // Ingresos totales: todas las órdenes pagadas
+        this.stats.totalRevenue = orders
           .filter(o => o.payment_status === 'paid')
           .reduce((sum, o) => sum + o.total, 0);
+        
+        // Ingresos del día: solo órdenes pagadas del día actual
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        this.stats.todayRevenue = orders
+          .filter(o => {
+            if (o.payment_status !== 'paid') return false;
+            
+            const orderDate = new Date(o.created_at);
+            orderDate.setHours(0, 0, 0, 0);
+            
+            return orderDate.getTime() === today.getTime();
+          })
+          .reduce((sum, o) => sum + o.total, 0);
+        
         this.recentOrders = orders.slice(0, 5);
       },
       error: (err) => {
@@ -107,4 +126,5 @@ export class DashboardComponent implements OnInit {
     return texts[status];
   }
 }
+
 
