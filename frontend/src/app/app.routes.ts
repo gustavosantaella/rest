@@ -62,6 +62,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/cash-closing/cash-closing.component').then(m => m.CashClosingComponent)
       },
       {
+        path: 'accounts-receivable',
+        loadComponent: () => import('./features/accounts-receivable/accounts-receivable.component').then(m => m.AccountsReceivableComponent)
+      },
+      {
+        path: 'accounts-payable',
+        loadComponent: () => import('./features/accounts-payable/accounts-payable.component').then(m => m.AccountsPayableComponent)
+      },
+      {
         path: 'profile',
         loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
       },

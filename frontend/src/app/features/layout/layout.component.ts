@@ -28,6 +28,7 @@ export class LayoutComponent implements OnInit {
   businessInitials: string = 'SG';
   sidebarOpen = true;
   configDropdownOpen = false;
+  accountsDropdownOpen = false;
   
   constructor() {}
   
@@ -77,6 +78,10 @@ export class LayoutComponent implements OnInit {
   
   toggleConfigDropdown(): void {
     this.configDropdownOpen = !this.configDropdownOpen;
+  }
+  
+  toggleAccountsDropdown(): void {
+    this.accountsDropdownOpen = !this.accountsDropdownOpen;
   }
   
   isAdmin(): boolean {

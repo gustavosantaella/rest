@@ -77,6 +77,42 @@
         <span *ngIf="sidebarOpen">Cierre de Caja</span>
       </a>
       
+      <!-- Accounts Dropdown -->
+      <div class="relative">
+        <button 
+          (click)="toggleAccountsDropdown()" 
+          class="w-full flex items-center justify-between space-x-3 px-4 py-3 rounded-lg hover:bg-primary-700 transition-colors"
+          [class.bg-primary-700]="accountsDropdownOpen"
+        >
+          <div class="flex items-center space-x-3">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+            <span *ngIf="sidebarOpen">Cuentas</span>
+          </div>
+          <svg *ngIf="sidebarOpen" class="w-4 h-4 transition-transform" [class.rotate-180]="accountsDropdownOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+        
+        <!-- Dropdown Items -->
+        <div *ngIf="accountsDropdownOpen && sidebarOpen" class="ml-4 mt-1 space-y-1">
+          <a routerLink="/accounts-receivable" routerLinkActive="bg-primary-700" class="flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>Cuentas por Cobrar</span>
+          </a>
+          
+          <a routerLink="/accounts-payable" routerLinkActive="bg-primary-700" class="flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            <span>Cuentas por Pagar</span>
+          </a>
+        </div>
+      </div>
+      
       <!-- Configuration Dropdown -->
       <div *ngIf="canAccessConfiguration() || true" class="relative">
         <button 
