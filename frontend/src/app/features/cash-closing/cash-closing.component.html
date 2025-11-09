@@ -1,0 +1,234 @@
+<div class="space-y-6 print:space-y-4">
+  <!-- Header -->
+  <div class="flex items-center justify-between print:hidden">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800">Cierre de Caja</h1>
+      <p class="text-gray-600 mt-1">Resumen de ventas y transacciones del día</p>
+    </div>
+    <div class="flex gap-3">
+      <button (click)="exportToCSV()" class="btn-secondary flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        Exportar CSV
+      </button>
+      <button (click)="printReport()" class="btn-primary flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+        </svg>
+        Imprimir
+      </button>
+    </div>
+  </div>
+  
+  <!-- Date Selector -->
+  <div class="card print:hidden">
+    <div class="flex items-center gap-4">
+      <label class="text-sm font-medium text-gray-700">Seleccionar Fecha:</label>
+      <input 
+        type="date" 
+        [(ngModel)]="selectedDate"
+        (change)="onDateChange()"
+        class="input-field max-w-xs"
+      />
+      <button (click)="loadDailyData()" class="btn-info">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Print Header (only visible when printing) -->
+  <div class="hidden print:block text-center mb-6">
+    <h1 class="text-2xl font-bold">CIERRE DE CAJA</h1>
+    <p class="text-lg">{{ selectedDate | date:'longDate':'':'es-ES' }}</p>
+  </div>
+  
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex items-center justify-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+  </div>
+  
+  <!-- Summary Cards -->
+  <div *ngIf="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 print:grid-cols-4 print:gap-4">
+    <!-- Total Sales -->
+    <div class="card hover:shadow-lg transition-shadow print:shadow-none">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600 mb-1">Total Ventas</p>
+          <p class="text-3xl font-bold text-green-600">${{ summary.totalSales.toFixed(2) }}</p>
+        </div>
+        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+          <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Total Orders -->
+    <div class="card hover:shadow-lg transition-shadow print:shadow-none">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600 mb-1">Total Órdenes</p>
+          <p class="text-3xl font-bold text-blue-600">{{ summary.totalOrders }}</p>
+        </div>
+        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+          <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Average Ticket -->
+    <div class="card hover:shadow-lg transition-shadow print:shadow-none">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600 mb-1">Ticket Promedio</p>
+          <p class="text-3xl font-bold text-purple-600">${{ summary.averageTicket.toFixed(2) }}</p>
+        </div>
+        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+          <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Completed Orders -->
+    <div class="card hover:shadow-lg transition-shadow print:shadow-none">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600 mb-1">Órdenes Completadas</p>
+          <p class="text-3xl font-bold text-emerald-600">{{ summary.completedOrders }}</p>
+          <p class="text-xs text-red-600 mt-1">Canceladas: {{ summary.cancelledOrders }}</p>
+        </div>
+        <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+          <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Payment Methods Summary -->
+  <div *ngIf="!loading" class="card print:break-inside-avoid">
+    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+      <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+      </svg>
+      Desglose por Métodos de Pago
+    </h2>
+    
+    <div *ngIf="paymentMethodSummaries.length === 0" class="text-center py-8 text-gray-500">
+      No hay transacciones registradas para esta fecha
+    </div>
+    
+    <div *ngIf="paymentMethodSummaries.length > 0" class="space-y-3">
+      <div *ngFor="let pm of paymentMethodSummaries" class="flex items-center justify-between p-4 bg-gray-50 rounded-lg print:bg-white print:border">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+            <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <p class="font-semibold text-gray-800">{{ pm.methodName }}</p>
+            <p class="text-sm text-gray-600">{{ pm.count }} transacción(es)</p>
+          </div>
+        </div>
+        <div class="text-right">
+          <p class="text-2xl font-bold text-primary-600">${{ pm.amount.toFixed(2) }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Top Products -->
+  <div *ngIf="!loading && productSummaries.length > 0" class="card print:break-inside-avoid">
+    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+      <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+      </svg>
+      Productos Más Vendidos
+    </h2>
+    
+    <div class="table-container print:overflow-visible">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="text-left">Producto</th>
+            <th class="text-center">Cantidad</th>
+            <th class="text-right">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let product of productSummaries">
+            <td class="font-medium">{{ product.productName }}</td>
+            <td class="text-center">
+              <span class="badge badge-info">{{ product.quantity }}</span>
+            </td>
+            <td class="text-right font-semibold">${{ product.total.toFixed(2) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Orders List -->
+  <div *ngIf="!loading" class="card print:break-inside-avoid">
+    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+      <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+      </svg>
+      Listado de Órdenes ({{ todayOrders.length }})
+    </h2>
+    
+    <div *ngIf="todayOrders.length === 0" class="text-center py-8 text-gray-500">
+      No hay órdenes registradas para esta fecha
+    </div>
+    
+    <div *ngIf="todayOrders.length > 0" class="table-container print:overflow-visible">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Hora</th>
+            <th>Mesa</th>
+            <th>Estado</th>
+            <th>Pago</th>
+            <th class="text-right">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let order of todayOrders">
+            <td class="font-medium">#{{ order.id }}</td>
+            <td>{{ formatDateTime(order.created_at).split(',')[1] }}</td>
+            <td>{{ order.table_id ? 'Mesa ' + order.table_id : 'Para llevar' }}</td>
+            <td>
+              <span [class]="'badge ' + getOrderStatusClass(order.status)">
+                {{ getOrderStatusText(order.status) }}
+              </span>
+            </td>
+            <td>
+              <span [class]="order.payment_status === 'paid' ? 'badge badge-success' : 'badge badge-warning'">
+                {{ order.payment_status === 'paid' ? 'Pagado' : order.payment_status === 'partial' ? 'Parcial' : 'Pendiente' }}
+              </span>
+            </td>
+            <td class="text-right font-semibold">${{ order.total.toFixed(2) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Print Footer -->
+  <div class="hidden print:block mt-8 pt-4 border-t text-center text-sm text-gray-600">
+    <p>Reporte generado el {{ currentDate | date:'medium':'':'es-ES' }}</p>
+    <p class="mt-2">Sistema de Gestión para Restaurante/Kiosko</p>
+  </div>
+</div>
+

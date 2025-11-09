@@ -58,6 +58,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/customers/customers.component').then(m => m.CustomersComponent)
       },
       {
+        path: 'cash-closing',
+        loadComponent: () => import('./features/cash-closing/cash-closing.component').then(m => m.CashClosingComponent)
+      },
+      {
         path: 'profile',
         loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
       },
