@@ -32,6 +32,7 @@ export class LayoutComponent implements OnInit {
   sidebarOpen = true;
   configDropdownOpen = false;
   accountsDropdownOpen = false;
+  statisticsDropdownOpen = false;
   showWelcomeModal = false;
   
   constructor() {}
@@ -114,6 +115,10 @@ export class LayoutComponent implements OnInit {
   
   toggleAccountsDropdown(): void {
     this.accountsDropdownOpen = !this.accountsDropdownOpen;
+  }
+  
+  toggleStatisticsDropdown(): void {
+    this.statisticsDropdownOpen = !this.statisticsDropdownOpen;
   }
   
   isAdmin(): boolean {

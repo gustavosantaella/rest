@@ -70,6 +70,27 @@ export const routes: Routes = [
         loadComponent: () => import('./features/accounts-payable/accounts-payable.component').then(m => m.AccountsPayableComponent)
       },
       {
+        path: 'statistics/general',
+        loadComponent: () => import('./features/statistics/general/statistics-general.component').then(m => m.StatisticsGeneralComponent)
+      },
+      {
+        path: 'statistics/best-sellers',
+        loadComponent: () => import('./features/statistics/best-sellers/statistics-best-sellers.component').then(m => m.StatisticsBestSellersComponent)
+      },
+      {
+        path: 'statistics/customers',
+        loadComponent: () => import('./features/statistics/customers/statistics-customers.component').then(m => m.StatisticsCustomersComponent)
+      },
+      {
+        path: 'statistics/financial',
+        loadComponent: () => import('./features/statistics/financial/statistics-financial.component').then(m => m.StatisticsFinancialComponent)
+      },
+      {
+        path: 'statistics',
+        redirectTo: 'statistics/general',
+        pathMatch: 'full'
+      },
+      {
         path: 'profile',
         loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
       },
