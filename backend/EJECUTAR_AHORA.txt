@@ -1,0 +1,139 @@
+================================================================================
+🎯 COMANDOS PARA EJECUTAR AHORA
+================================================================================
+
+PASO 1: MIGRAR LA BASE DE DATOS (IMPORTANTE - SOLO UNA VEZ)
+────────────────────────────────────────────────────────────
+cd backend
+python add_business_id_migration.py
+
+Este comando agregará el campo business_id a las tablas:
+  ✅ tables
+  ✅ orders
+  ✅ products
+  ✅ categories
+  ✅ menu_items
+  ✅ menu_categories
+
+⚠️  IMPORTANTE: Haz un backup de tu base de datos antes si tienes datos importantes!
+
+
+PASO 2: INICIAR EL SERVIDOR
+────────────────────────────────────────────────────────────
+python run_nest.py
+
+O alternativamente:
+uvicorn app_nest:app --reload --host 0.0.0.0 --port 8000
+
+
+PASO 3: ABRIR DOCUMENTACIÓN
+────────────────────────────────────────────────────────────
+Abre en tu navegador:
+http://localhost:8000/docs
+
+
+PASO 4: PROBAR LOS ENDPOINTS
+────────────────────────────────────────────────────────────
+Prueba estos endpoints con prefijo /api:
+
+✅ POST /api/auth/login
+✅ GET  /api/products
+✅ GET  /api/customers
+✅ GET  /api/tables
+✅ GET  /api/users/me
+✅ GET  /api/profile/my-permissions
+
+
+================================================================================
+📋 MÓDULOS MIGRADOS A PYNEST
+================================================================================
+
+Estos módulos YA están funcionando con PyNest y filtran por business_id:
+
+✅ /api/auth/*         - Autenticación
+✅ /api/products/*     - Productos (filtrado por negocio)
+✅ /api/customers/*    - Clientes (filtrado por negocio)
+✅ /api/users/*        - Usuarios (filtrado por negocio)
+✅ /api/tables/*       - Mesas (filtrado por negocio)
+✅ /api/profile/*      - Perfil
+
+Estos módulos están usando routers legacy temporalmente:
+
+🔄 /api/orders/*
+🔄 /api/menu/*
+🔄 /api/configuration/*
+🔄 /api/payment-methods/*
+🔄 Y otros...
+
+
+================================================================================
+🔒 MULTI-TENANCY IMPLEMENTADO
+================================================================================
+
+Ahora cada negocio SOLO ve sus propios datos:
+
+  Negocio A → Solo ve mesas, productos, clientes del Negocio A
+  Negocio B → Solo ve mesas, productos, clientes del Negocio B
+
+Esto se logró agregando business_id a los modelos y filtrando en los servicios.
+
+
+================================================================================
+⚠️  MUY IMPORTANTE
+================================================================================
+
+ANTES de iniciar el servidor, DEBES ejecutar la migración:
+
+1. python add_business_id_migration.py
+
+Sin esto, el servidor NO funcionará correctamente porque los modelos
+esperan el campo business_id pero la base de datos no lo tiene.
+
+
+================================================================================
+📞 ¿PROBLEMAS?
+================================================================================
+
+Error: "business_id does not exist"
+→ Ejecuta: python add_business_id_migration.py
+
+Error: "No module named 'nest'"
+→ Ejecuta: pip install -r requirements.txt
+
+Error: "No se pueden crear productos/mesas"
+→ Verifica que ejecutaste la migración de BD
+
+Rutas con icono rojo (X)
+→ Esos módulos están usando routers legacy, necesitan migración
+
+
+================================================================================
+✨ ¡LISTO!
+================================================================================
+
+Tu aplicación ahora tiene:
+  ✅ Arquitectura modular con PyNest
+  ✅ Multi-tenancy por business_id
+  ✅ Inyección de dependencias automática
+  ✅ Datos aislados por negocio
+  ✅ 6 módulos completamente migrados
+
+Para más información, lee:
+  📖 LEEME_PRIMERO.md
+  📖 RESUMEN_CAMBIOS.md
+  📖 INSTRUCCIONES_MULTI_TENANCY.md
+
+
+================================================================================
+🚀 COMANDO RÁPIDO
+================================================================================
+
+# Todo en uno:
+python add_business_id_migration.py && python run_nest.py
+
+
+Fecha: 2025
+Versión: 2.0.0
+Framework: PyNest + FastAPI
+Multi-Tenancy: Habilitado
+

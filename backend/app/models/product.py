@@ -18,7 +18,8 @@ class Category(Base):
     __tablename__ = "categories"
     
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False)
+    business_id = Column(Integer, ForeignKey("business_configuration.id"), nullable=False, index=True)
+    name = Column(String, nullable=False)
     description = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)  # Soft delete
@@ -30,6 +31,7 @@ class Product(Base):
     __tablename__ = "products"
     
     id = Column(Integer, primary_key=True, index=True)
+    business_id = Column(Integer, ForeignKey("business_configuration.id"), nullable=False, index=True)
     name = Column(String, nullable=False, index=True)
     description = Column(Text)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)

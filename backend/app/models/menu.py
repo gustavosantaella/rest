@@ -18,7 +18,8 @@ class MenuCategory(Base):
     __tablename__ = "menu_categories"
     
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False)
+    business_id = Column(Integer, ForeignKey("business_configuration.id"), nullable=False, index=True)
+    name = Column(String, nullable=False)
     description = Column(Text)
     display_order = Column(Integer, default=0)  # Orden de visualización
     is_active = Column(Boolean, default=True)
@@ -32,6 +33,7 @@ class MenuItem(Base):
     __tablename__ = "menu_items"
     
     id = Column(Integer, primary_key=True, index=True)
+    business_id = Column(Integer, ForeignKey("business_configuration.id"), nullable=False, index=True)
     name = Column(String, nullable=False, index=True)
     description = Column(Text)
     category_id = Column(Integer, ForeignKey("menu_categories.id"), nullable=False)

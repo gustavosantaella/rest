@@ -29,6 +29,7 @@ class Order(Base):
     __tablename__ = "orders"
     
     id = Column(Integer, primary_key=True, index=True)
+    business_id = Column(Integer, ForeignKey("business_configuration.id"), nullable=False, index=True)
     table_id = Column(Integer, ForeignKey("tables.id"), nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # Mesero que atiende
     

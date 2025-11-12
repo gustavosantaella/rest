@@ -470,3 +470,6 @@ Cuando implementes funcionalidad offline en un nuevo componente:
 8. **Testar exhaustivamente**: Probar escenarios de pérdida de conexión inesperada
 
 
+
+
+
