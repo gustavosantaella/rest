@@ -1,0 +1,131 @@
+================================================================================
+⚠️  IMPORTANTE - LEE ESTO PRIMERO
+================================================================================
+
+El error que viste:
+"column products.business_id does not exist"
+
+Significa que la base de datos NO tiene el campo business_id todavía.
+Los MODELOS lo tienen, pero la BASE DE DATOS no.
+
+================================================================================
+✅ SOLUCIÓN - EJECUTAR EN ESTE ORDEN:
+================================================================================
+
+PASO 1: Detener el servidor (si está corriendo)
+────────────────────────────────────────────────
+Presiona Ctrl+C en la terminal donde corre el servidor
+
+
+PASO 2: Ejecutar la migración de base de datos
+────────────────────────────────────────────────
+cd backend
+python migrate_add_business_id.py
+
+Cuando te pregunte si deseas continuar, escribe: si
+
+
+PASO 3: Verificar que la migración fue exitosa
+────────────────────────────────────────────────
+Deberías ver:
+  ✅ Tabla 'tables' procesada correctamente
+  ✅ Tabla 'products' procesada correctamente
+  ✅ Tabla 'categories' procesada correctamente
+  ✅ Tabla 'menu_items' procesada correctamente
+  ✅ Tabla 'menu_categories' procesada correctamente
+  ✅ Tabla 'orders' procesada correctamente
+
+
+PASO 4: Iniciar el servidor nuevamente
+────────────────────────────────────────────────
+python run_nest.py
+
+
+PASO 5: Probar en el navegador
+────────────────────────────────────────────────
+http://localhost:8000/docs
+
+
+================================================================================
+🎯 QUÉ HACE LA MIGRACIÓN
+================================================================================
+
+El script migrate_add_business_id.py va a:
+
+1. Agregar la columna business_id a:
+   - tables
+   - products
+   - categories
+   - menu_items
+   - menu_categories
+   - orders
+
+2. Asignar un business_id por defecto a los datos existentes
+
+3. Crear foreign keys e índices
+
+4. Quitar constraints unique globales que ahora son por negocio
+
+
+================================================================================
+⚠️  BACKUP RECOMENDADO (OPCIONAL PERO SUGERIDO)
+================================================================================
+
+Antes de ejecutar la migración, haz un backup:
+
+# PostgreSQL
+pg_dump -U postgres restaurant_db > backup.sql
+
+# O desde pgAdmin exportar la base de datos
+
+
+================================================================================
+🐛 SI HAY ERRORES
+================================================================================
+
+Error: "relation does not exist"
+→ Algunas tablas no existen aún
+→ Ejecuta primero: python init_db.py
+
+Error: "permission denied"
+→ El usuario de BD no tiene permisos
+→ Usa un usuario con permisos de ALTER TABLE
+
+Error: "constraint already exists"
+→ La migración ya se ejecutó parcialmente
+→ Es seguro, continúa normalmente
+
+
+================================================================================
+✨ DESPUÉS DE LA MIGRACIÓN
+================================================================================
+
+Una vez completada:
+  ✅ Todas las tablas tendrán business_id
+  ✅ Multi-tenancy estará funcionando
+  ✅ Cada negocio verá solo sus datos
+  ✅ La app funcionará correctamente
+
+
+================================================================================
+🚀 COMANDO RÁPIDO (TODO EN UNO)
+================================================================================
+
+# Ejecutar migración e iniciar servidor
+python migrate_add_business_id.py && python run_nest.py
+
+
+================================================================================
+📞 AYUDA
+================================================================================
+
+Si tienes problemas, revisa:
+  - MIGRACION_BUSINESS_ID.md
+  - INSTRUCCIONES_MULTI_TENANCY.md
+  - LEEME_PRIMERO.md
+
+
+Fecha: 2025
+Versión: 2.0.0
+Estado: Requiere ejecución de migración
+

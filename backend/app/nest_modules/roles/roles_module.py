@@ -2,13 +2,16 @@
 Módulo de roles para PyNest
 """
 from nest.core import Module
+from .roles_controller import RolesController
+from .roles_service import RolesService
 
 
 @Module(
-    controllers=[],
-    providers=[]
+    controllers=[RolesController],
+    providers=[RolesService],
+    exports=[RolesService]
 )
 class RolesModule:
-    """Módulo de roles (usar legacy router temporalmente)"""
+    """Módulo de roles"""
     pass
 

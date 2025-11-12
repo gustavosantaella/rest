@@ -1,14 +1,17 @@
 """
-Módulo de órdenes para PyNest - Adaptador temporal
+Módulo de órdenes para PyNest
 """
 from nest.core import Module
+from .orders_controller import OrdersController
+from .orders_service import OrdersService
 
 
 @Module(
-    controllers=[],
-    providers=[]
+    controllers=[OrdersController],
+    providers=[OrdersService],
+    exports=[OrdersService]
 )
 class OrdersModule:
-    """Módulo de órdenes (usando router legacy temporalmente)"""
+    """Módulo de órdenes"""
     pass
 

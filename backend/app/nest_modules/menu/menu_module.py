@@ -1,14 +1,17 @@
 """
-Módulo de menú para PyNest - Adaptador temporal
+Módulo de menú para PyNest
 """
 from nest.core import Module
+from .menu_controller import MenuController
+from .menu_service import MenuService
 
 
 @Module(
-    controllers=[],
-    providers=[]
+    controllers=[MenuController],
+    providers=[MenuService],
+    exports=[MenuService]
 )
 class MenuModule:
-    """Módulo de menú (usando router legacy temporalmente)"""
+    """Módulo de menú"""
     pass
 

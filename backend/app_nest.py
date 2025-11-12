@@ -28,22 +28,6 @@ from app.nest_modules.permissions.permissions_module import PermissionsModule
 from app.nest_modules.roles.roles_module import RolesModule
 from app.nest_modules.statistics.statistics_module import StatisticsModule
 
-# Importar routers legacy (temporal - hasta completar migración)
-from app.routers import (
-    orders,
-    menu,
-    configuration,
-    payment_methods,
-    upload,
-    public,
-    permissions,
-    roles,
-    system_permissions,
-    accounts_receivable,
-    accounts_payable,
-    statistics,
-)
-
 
 @Module(
     imports=[
@@ -90,20 +74,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Incluir routers legacy temporalmente (hasta completar migración)
-app.include_router(orders.router, prefix="/api")
-app.include_router(menu.router, prefix="/api")
-app.include_router(configuration.router, prefix="/api")
-app.include_router(payment_methods.router, prefix="/api")
-app.include_router(upload.router, prefix="/api")
-app.include_router(permissions.router, prefix="/api")
-app.include_router(roles.router, prefix="/api")
-app.include_router(system_permissions.router, prefix="/api")
-app.include_router(public.router, prefix="/api")
-app.include_router(accounts_receivable.router, prefix="/api")
-app.include_router(accounts_payable.router, prefix="/api")
-app.include_router(statistics.router, prefix="/api")
 
 # Configurar archivos estáticos
 UPLOAD_DIR = "uploads"
