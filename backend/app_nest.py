@@ -27,6 +27,7 @@ from app.nest_modules.accounts_payable.accounts_payable_module import (
 from app.nest_modules.permissions.permissions_module import PermissionsModule
 from app.nest_modules.roles.roles_module import RolesModule
 from app.nest_modules.statistics.statistics_module import StatisticsModule
+from app.nest_modules.public.public_module import PublicModule
 
 
 @Module(
@@ -46,6 +47,7 @@ from app.nest_modules.statistics.statistics_module import StatisticsModule
         PermissionsModule,
         RolesModule,
         StatisticsModule,
+        PublicModule,
     ]
 )
 class AppModule:
