@@ -42,10 +42,13 @@ export class StatisticsCustomersComponent implements OnInit {
   calculateChartData(): void {
     if (!this.statistics) return;
     
+    // Validar que customers_with_debt existe y no es null
+    const customersWithDebt = this.statistics.customers_with_debt || [];
+    
     // Calcular datos del gráfico una sola vez
     this.debtChartData = {
-      labels: this.statistics.customers_with_debt.map(c => c.name),
-      data: this.statistics.customers_with_debt.map(c => c.total_pending)
+      labels: customersWithDebt.map(c => c.name),
+      data: customersWithDebt.map(c => c.total_pending)
     };
   }
 }

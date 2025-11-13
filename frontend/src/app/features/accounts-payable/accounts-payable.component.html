@@ -16,7 +16,7 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-600 mb-1">Total por Pagar</p>
-          <p class="text-3xl font-bold text-red-600">${{ summary.total_pending.toFixed(2) }}</p>
+          <p class="text-3xl font-bold text-red-600">${{ (summary.total_pending ?? 0).toFixed(2) }}</p>
         </div>
         <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
           <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,7 +30,7 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-600 mb-1">Vencidas</p>
-          <p class="text-3xl font-bold text-red-800">${{ summary.total_overdue.toFixed(2) }}</p>
+          <p class="text-3xl font-bold text-red-800">${{ (summary.total_overdue ?? 0).toFixed(2) }}</p>
         </div>
         <div class="w-12 h-12 bg-red-200 rounded-lg flex items-center justify-center">
           <svg class="w-6 h-6 text-red-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,7 +44,7 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-600 mb-1">Cuentas Pendientes</p>
-          <p class="text-3xl font-bold text-orange-600">{{ summary.count_pending }}</p>
+          <p class="text-3xl font-bold text-orange-600">{{ summary.count_pending ?? 0 }}</p>
         </div>
         <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
           <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,7 +58,7 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-600 mb-1">Vencidas (Cant.)</p>
-          <p class="text-3xl font-bold text-red-800">{{ summary.count_overdue }}</p>
+          <p class="text-3xl font-bold text-red-800">{{ summary.count_overdue ?? 0 }}</p>
         </div>
         <div class="w-12 h-12 bg-red-200 rounded-lg flex items-center justify-center">
           <svg class="w-6 h-6 text-red-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">

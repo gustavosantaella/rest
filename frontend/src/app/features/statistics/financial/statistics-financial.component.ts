@@ -54,9 +54,12 @@ export class StatisticsFinancialComponent implements OnInit {
   calculateChartData(): void {
     if (!this.statistics) return;
     
+    // Validar que income_by_method existe y no es null
+    const incomeByMethod = this.statistics.income_by_method || {};
+    
     // Calcular métodos de pago una sola vez
-    this.paymentMethods = Object.entries(this.statistics.income_by_method)
-      .map(([name, amount]) => ({ name, amount }))
+    this.paymentMethods = Object.entries(incomeByMethod)
+      .map(([name, amount]) => ({ name, amount: amount as number }))
       .sort((a, b) => b.amount - a.amount);
     
     // Datos para gráfico de pastel
@@ -65,10 +68,14 @@ export class StatisticsFinancialComponent implements OnInit {
       data: this.paymentMethods.map(m => m.amount)
     };
     
-    // Datos para gráfico de barras comparativo
+    // Datos para gráfico de barras comparativo - con valores por defecto
     this.incomeVsExpensesData = {
       labels: ['Ingresos', 'Egresos', 'Ganancia Neta'],
-      data: [this.statistics.total_income, this.statistics.total_expenses, this.statistics.net_profit]
+      data: [
+        this.statistics.total_income ?? 0,
+        this.statistics.total_expenses ?? 0,
+        this.statistics.net_profit ?? 0
+      ]
     };
   }
 }

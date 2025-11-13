@@ -28,6 +28,35 @@ class MenuCategoryRepository:
             MenuCategory.business_id == business_id,
             MenuCategory.deleted_at.is_(None)
         ).first()
+    
+    def find_by_name(self, name: str, business_id: int) -> Optional[MenuCategory]:
+        """Buscar categoría por nombre"""
+        return self.db.query(MenuCategory).filter(
+            MenuCategory.name == name,
+            MenuCategory.business_id == business_id,
+            MenuCategory.deleted_at.is_(None)
+        ).first()
+    
+    def create(self, category_data: dict) -> MenuCategory:
+        """Crear nueva categoría del menú"""
+        category = MenuCategory(**category_data)
+        self.db.add(category)
+        self.db.commit()
+        self.db.refresh(category)
+        return category
+    
+    def update(self, category: MenuCategory, update_data: dict) -> MenuCategory:
+        """Actualizar categoría del menú"""
+        for field, value in update_data.items():
+            setattr(category, field, value)
+        self.db.commit()
+        self.db.refresh(category)
+        return category
+    
+    def soft_delete(self, category: MenuCategory) -> None:
+        """Eliminar categoría del menú (soft delete)"""
+        category.deleted_at = datetime.now()
+        self.db.commit()
 
 
 class MenuItemRepository:
@@ -65,12 +94,40 @@ class MenuItemRepository:
         ).first()
     
     def create(self, item_data: dict) -> MenuItem:
-        """Crear nuevo item del menú"""
+        """Crear nuevo item del menú (sin ingredientes)"""
         item = MenuItem(**item_data)
         self.db.add(item)
         self.db.commit()
         self.db.refresh(item)
         return item
+    
+    def add_ingredients(self, menu_item_id: int, ingredients: List):
+        """Agregar ingredientes a un item del menú"""
+        from sqlalchemy import insert
+        from ...models.menu import menu_item_ingredients
+        
+        # Eliminar ingredientes existentes
+        self.db.execute(
+            menu_item_ingredients.delete().where(
+                menu_item_ingredients.c.menu_item_id == menu_item_id
+            )
+        )
+        
+        # Insertar nuevos ingredientes
+        for ingredient in ingredients:
+            self.db.execute(
+                insert(menu_item_ingredients).values(
+                    menu_item_id=menu_item_id,
+                    product_id=ingredient.product_id if hasattr(ingredient, 'product_id') else ingredient['product_id'],
+                    quantity=ingredient.quantity if hasattr(ingredient, 'quantity') else ingredient['quantity']
+                )
+            )
+        
+        self.db.commit()
+    
+    def update_ingredients(self, menu_item_id: int, ingredients: List):
+        """Actualizar ingredientes de un item del menú"""
+        self.add_ingredients(menu_item_id, ingredients)
     
     def update(self, item: MenuItem, update_data: dict) -> MenuItem:
         """Actualizar item del menú"""

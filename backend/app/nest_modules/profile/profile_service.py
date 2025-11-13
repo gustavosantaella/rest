@@ -63,7 +63,7 @@ class ProfileService:
                 )
 
         # Actualizar
-        return profile_repo.update_user(user, update_data)
+        return profile_repo.update_user(user.id, update_data)
 
     def change_password(self, user: User, password_data: PasswordChange, db: Session):
         """Cambiar contraseña del usuario con validaciones"""
@@ -78,6 +78,6 @@ class ProfileService:
 
         # Actualizar contraseña
         hashed_password = get_password_hash(password_data.new_password)
-        profile_repo.update_password(user, hashed_password)
+        profile_repo.update_password(user.id, hashed_password)
 
         return {"message": "Contraseña actualizada exitosamente"}

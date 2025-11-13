@@ -47,7 +47,7 @@ export class AccountsPayableService {
   }
   
   getSummary(): Observable<AccountsSummary> {
-    return this.http.get<AccountsSummary>(`${this.apiUrl}/summary/stats`);
+    return this.http.get<AccountsSummary>(`${this.apiUrl}/summary`);
   }
 }
 

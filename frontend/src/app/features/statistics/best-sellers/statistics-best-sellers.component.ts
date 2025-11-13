@@ -52,15 +52,19 @@ export class StatisticsBestSellersComponent implements OnInit {
   calculateChartData(): void {
     if (!this.statistics) return;
     
+    // Validar que los arrays existen y no son null
+    const bestProducts = this.statistics.best_products || [];
+    const bestMenuItems = this.statistics.best_menu_items || [];
+    
     // Calcular datos de gráficos una sola vez
     this.bestProductsChartData = {
-      labels: this.statistics.best_products.map(p => p.name),
-      data: this.statistics.best_products.map(p => p.quantity)
+      labels: bestProducts.map(p => p.name),
+      data: bestProducts.map(p => p.quantity)
     };
     
     this.bestMenuChartData = {
-      labels: this.statistics.best_menu_items.map(m => m.name),
-      data: this.statistics.best_menu_items.map(m => m.quantity)
+      labels: bestMenuItems.map(m => m.name),
+      data: bestMenuItems.map(m => m.quantity)
     };
   }
 }

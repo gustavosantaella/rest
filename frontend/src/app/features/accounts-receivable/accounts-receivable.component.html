@@ -9,71 +9,136 @@
       + Nueva Cuenta por Cobrar
     </button>
   </div>
-  
+
   <!-- Summary Cards -->
-  <div *ngIf="summary" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  <div
+    *ngIf="summary"
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+  >
     <div class="card hover:shadow-lg transition-shadow">
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-600 mb-1">Total Pendiente</p>
-          <p class="text-3xl font-bold text-orange-600">${{ summary.total_pending.toFixed(2) }}</p>
+          <p class="text-3xl font-bold text-orange-600">
+            ${{ (summary.total_pending ?? 0).toFixed(2) }}
+          </p>
         </div>
-        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-          <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        <div
+          class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center"
+        >
+          <svg
+            class="w-6 h-6 text-orange-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
           </svg>
         </div>
       </div>
     </div>
-    
+
     <div class="card hover:shadow-lg transition-shadow">
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-600 mb-1">Vencidas</p>
-          <p class="text-3xl font-bold text-red-600">${{ summary.total_overdue.toFixed(2) }}</p>
+          <p class="text-3xl font-bold text-red-600">
+            ${{ (summary.total_overdue ?? 0).toFixed(2) }}
+          </p>
         </div>
-        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-          <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        <div
+          class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center"
+        >
+          <svg
+            class="w-6 h-6 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
           </svg>
         </div>
       </div>
     </div>
-    
+
     <div class="card hover:shadow-lg transition-shadow">
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-600 mb-1">Cuentas Pendientes</p>
-          <p class="text-3xl font-bold text-blue-600">{{ summary.count_pending }}</p>
+          <p class="text-3xl font-bold text-blue-600">
+            {{ summary.count_pending ?? 0 }}
+          </p>
         </div>
-        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-          <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        <div
+          class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"
+        >
+          <svg
+            class="w-6 h-6 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            ></path>
           </svg>
         </div>
       </div>
     </div>
-    
+
     <div class="card hover:shadow-lg transition-shadow">
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-600 mb-1">Vencidas (Cant.)</p>
-          <p class="text-3xl font-bold text-red-600">{{ summary.count_overdue }}</p>
+          <p class="text-3xl font-bold text-red-600">
+            {{ summary.count_overdue ?? 0 }}
+          </p>
         </div>
-        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-          <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        <div
+          class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center"
+        >
+          <svg
+            class="w-6 h-6 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            ></path>
           </svg>
         </div>
       </div>
     </div>
   </div>
-  
+
   <!-- Filters -->
   <div class="card">
     <div class="flex items-center gap-4">
-      <label class="text-sm font-medium text-gray-700">Filtrar por estado:</label>
-      <select [(ngModel)]="filterStatus" (change)="loadAccounts()" class="input-field max-w-xs">
+      <label class="text-sm font-medium text-gray-700"
+        >Filtrar por estado:</label
+      >
+      <select
+        [(ngModel)]="filterStatus"
+        (change)="loadAccounts()"
+        class="input-field max-w-xs"
+      >
         <option value="">Todos</option>
         <option value="pending">Pendientes</option>
         <option value="partial">Parciales</option>
@@ -82,18 +147,20 @@
       </select>
     </div>
   </div>
-  
+
   <!-- Loading State -->
   <div *ngIf="loading" class="flex items-center justify-center py-12">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"
+    ></div>
   </div>
-  
+
   <!-- Accounts List -->
   <div *ngIf="!loading" class="card">
     <div *ngIf="accounts.length === 0" class="text-center py-8 text-gray-500">
       No hay cuentas por cobrar registradas
     </div>
-    
+
     <div *ngIf="accounts.length > 0" class="table-container">
       <table class="table">
         <thead>
@@ -109,15 +176,26 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let account of accounts" [class.bg-red-50]="account.status === AccountStatus.OVERDUE">
-            <td class="font-medium">{{ account.invoice_number || '-' }}</td>
-            <td>{{ account.customer_name || 'Sin cliente' }}</td>
+          <tr
+            *ngFor="let account of accounts"
+            [class.bg-red-50]="account.status === AccountStatus.OVERDUE"
+          >
+            <td class="font-medium">{{ account.invoice_number || "-" }}</td>
+            <td>{{ account.customer_name || "Sin cliente" }}</td>
             <td>{{ account.description }}</td>
             <td class="font-semibold">${{ account.amount.toFixed(2) }}</td>
-            <td class="font-semibold" [class.text-red-600]="account.amount_pending > 0">
+            <td
+              class="font-semibold"
+              [class.text-red-600]="account.amount_pending > 0"
+            >
               ${{ account.amount_pending.toFixed(2) }}
             </td>
-            <td [class.text-red-600]="isOverdue(account.due_date) && account.status !== AccountStatus.PAID">
+            <td
+              [class.text-red-600]="
+                isOverdue(account.due_date) &&
+                account.status !== AccountStatus.PAID
+              "
+            >
               {{ formatDate(account.due_date) }}
             </td>
             <td>
@@ -127,17 +205,24 @@
             </td>
             <td>
               <div class="flex gap-2">
-                <button 
+                <button
                   *ngIf="account.status !== AccountStatus.PAID"
-                  (click)="openPaymentModal(account)" 
+                  (click)="openPaymentModal(account)"
                   class="btn-success text-sm py-1 px-3"
-                  title="Registrar pago">
+                  title="Registrar pago"
+                >
                   💰
                 </button>
-                <button (click)="openModal(account)" class="btn-secondary text-sm py-1 px-3">
+                <button
+                  (click)="openModal(account)"
+                  class="btn-secondary text-sm py-1 px-3"
+                >
                   ✏️
                 </button>
-                <button (click)="deleteAccount(account)" class="btn-danger text-sm py-1 px-3">
+                <button
+                  (click)="deleteAccount(account)"
+                  class="btn-danger text-sm py-1 px-3"
+                >
                   🗑️
                 </button>
               </div>
@@ -150,63 +235,129 @@
 </div>
 
 <!-- Account Modal -->
-<div *ngIf="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-  <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+<div
+  *ngIf="showModal"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+>
+  <div
+    class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+  >
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold">{{ editingAccount ? 'Editar' : 'Nueva' }} Cuenta por Cobrar</h2>
-        <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        <h2 class="text-2xl font-bold">
+          {{ editingAccount ? "Editar" : "Nueva" }} Cuenta por Cobrar
+        </h2>
+        <button
+          (click)="closeModal()"
+          class="text-gray-400 hover:text-gray-600"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
           </svg>
         </button>
       </div>
-      
+
       <form [formGroup]="accountForm" (ngSubmit)="saveAccount()">
         <div class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Cliente</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Cliente</label
+              >
               <select formControlName="customer_id" class="input-field">
                 <option value="">Sin cliente</option>
-                <option *ngFor="let customer of customers" [value]="customer.id">
+                <option
+                  *ngFor="let customer of customers"
+                  [value]="customer.id"
+                >
                   {{ customer.nombre }} {{ customer.apellido }}
                 </option>
               </select>
             </div>
-            
+
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Nº Factura</label>
-              <input type="text" formControlName="invoice_number" class="input-field" placeholder="Opcional" />
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Nº Factura</label
+              >
+              <input
+                type="text"
+                formControlName="invoice_number"
+                class="input-field"
+                placeholder="Opcional"
+              />
             </div>
           </div>
-          
+
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Descripción *</label>
-            <textarea formControlName="description" rows="3" class="input-field" placeholder="Detalle de la cuenta"></textarea>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Descripción *</label
+            >
+            <textarea
+              formControlName="description"
+              rows="3"
+              class="input-field"
+              placeholder="Detalle de la cuenta"
+            ></textarea>
           </div>
-          
+
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Monto *</label>
-              <input type="number" step="0.01" formControlName="amount" class="input-field" placeholder="0.00" />
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Monto *</label
+              >
+              <input
+                type="number"
+                step="0.01"
+                formControlName="amount"
+                class="input-field"
+                placeholder="0.00"
+              />
             </div>
-            
+
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Vencimiento *</label>
-              <input type="date" formControlName="due_date" class="input-field" />
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Fecha de Vencimiento *</label
+              >
+              <input
+                type="date"
+                formControlName="due_date"
+                class="input-field"
+              />
             </div>
           </div>
-          
+
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Notas</label>
-            <textarea formControlName="notes" rows="2" class="input-field" placeholder="Notas adicionales"></textarea>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Notas</label
+            >
+            <textarea
+              formControlName="notes"
+              rows="2"
+              class="input-field"
+              placeholder="Notas adicionales"
+            ></textarea>
           </div>
         </div>
-        
+
         <div class="mt-6 flex justify-end space-x-3">
-          <button type="button" (click)="closeModal()" class="btn-secondary">Cancelar</button>
-          <button type="submit" [disabled]="accountForm.invalid" class="btn-primary disabled:opacity-50">
+          <button type="button" (click)="closeModal()" class="btn-secondary">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="accountForm.invalid"
+            class="btn-primary disabled:opacity-50"
+          >
             Guardar
           </button>
         </div>
@@ -216,32 +367,60 @@
 </div>
 
 <!-- Payment Modal -->
-<div *ngIf="showPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+<div
+  *ngIf="showPaymentModal"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+>
   <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold">Registrar Pago</h2>
-        <button (click)="closePaymentModal()" class="text-gray-400 hover:text-gray-600">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        <button
+          (click)="closePaymentModal()"
+          class="text-gray-400 hover:text-gray-600"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
           </svg>
         </button>
       </div>
-      
+
       <div *ngIf="selectedAccount" class="mb-4 p-4 bg-gray-50 rounded-lg">
         <p class="text-sm text-gray-600">Monto pendiente:</p>
-        <p class="text-2xl font-bold text-primary-600">${{ selectedAccount.amount_pending.toFixed(2) }}</p>
+        <p class="text-2xl font-bold text-primary-600">
+          ${{ selectedAccount.amount_pending.toFixed(2) }}
+        </p>
       </div>
-      
+
       <form [formGroup]="paymentForm" (ngSubmit)="addPayment()">
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Monto del Pago *</label>
-            <input type="number" step="0.01" formControlName="amount" class="input-field" placeholder="0.00" />
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Monto del Pago *</label
+            >
+            <input
+              type="number"
+              step="0.01"
+              formControlName="amount"
+              class="input-field"
+              placeholder="0.00"
+            />
           </div>
-          
+
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Método de Pago</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Método de Pago</label
+            >
             <select formControlName="payment_method" class="input-field">
               <option value="">Seleccionar</option>
               <option value="Efectivo">Efectivo</option>
@@ -250,21 +429,45 @@
               <option value="Tarjeta">Tarjeta</option>
             </select>
           </div>
-          
+
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Referencia</label>
-            <input type="text" formControlName="reference" class="input-field" placeholder="Número de referencia" />
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Referencia</label
+            >
+            <input
+              type="text"
+              formControlName="reference"
+              class="input-field"
+              placeholder="Número de referencia"
+            />
           </div>
-          
+
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Notas</label>
-            <textarea formControlName="notes" rows="2" class="input-field" placeholder="Notas del pago"></textarea>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Notas</label
+            >
+            <textarea
+              formControlName="notes"
+              rows="2"
+              class="input-field"
+              placeholder="Notas del pago"
+            ></textarea>
           </div>
         </div>
-        
+
         <div class="mt-6 flex justify-end space-x-3">
-          <button type="button" (click)="closePaymentModal()" class="btn-secondary">Cancelar</button>
-          <button type="submit" [disabled]="paymentForm.invalid" class="btn-success disabled:opacity-50">
+          <button
+            type="button"
+            (click)="closePaymentModal()"
+            class="btn-secondary"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="paymentForm.invalid"
+            class="btn-success disabled:opacity-50"
+          >
             Registrar Pago
           </button>
         </div>
@@ -272,4 +475,3 @@
     </div>
   </div>
 </div>
-

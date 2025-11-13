@@ -21,7 +21,7 @@
           <span class="text-3xl">💰</span>
           <p class="text-sm text-gray-600">Ingresos</p>
         </div>
-        <p class="text-3xl font-bold text-green-600">${{ statistics.total_income.toFixed(2) }}</p>
+        <p class="text-3xl font-bold text-green-600">${{ (statistics.total_income ?? 0).toFixed(2) }}</p>
       </div>
       
       <div class="card bg-gradient-to-br from-red-50 to-white border-l-4 border-red-500">
@@ -29,7 +29,7 @@
           <span class="text-3xl">💸</span>
           <p class="text-sm text-gray-600">Egresos</p>
         </div>
-        <p class="text-3xl font-bold text-red-600">${{ statistics.total_expenses.toFixed(2) }}</p>
+        <p class="text-3xl font-bold text-red-600">${{ (statistics.total_expenses ?? 0).toFixed(2) }}</p>
       </div>
       
       <div class="card bg-gradient-to-br from-blue-50 to-white border-l-4 border-blue-500">
@@ -37,10 +37,10 @@
           <span class="text-3xl">📊</span>
           <p class="text-sm text-gray-600">Ganancia Neta</p>
         </div>
-        <p class="text-3xl font-bold" [class.text-green-600]="statistics.net_profit >= 0" [class.text-red-600]="statistics.net_profit < 0">
-          ${{ statistics.net_profit.toFixed(2) }}
+        <p class="text-3xl font-bold" [class.text-green-600]="(statistics.net_profit ?? 0) >= 0" [class.text-red-600]="(statistics.net_profit ?? 0) < 0">
+          ${{ (statistics.net_profit ?? 0).toFixed(2) }}
         </p>
-        <p class="text-sm text-gray-600 mt-1">Margen: {{ statistics.profit_margin.toFixed(1) }}%</p>
+        <p class="text-sm text-gray-600 mt-1">Margen: {{ (statistics.profit_margin ?? 0).toFixed(1) }}%</p>
       </div>
     </div>
     
@@ -48,8 +48,8 @@
     <div class="card bg-gradient-to-r from-purple-50 via-blue-50 to-purple-50 border-2 border-purple-300">
       <div class="text-center">
         <p class="text-sm text-gray-600 mb-2">Balance Proyectado (incluyendo pendientes)</p>
-        <p class="text-4xl font-bold" [class.text-green-600]="statistics.projected_balance >= 0" [class.text-red-600]="statistics.projected_balance < 0">
-          ${{ statistics.projected_balance.toFixed(2) }}
+        <p class="text-4xl font-bold" [class.text-green-600]="(statistics.projected_balance ?? 0) >= 0" [class.text-red-600]="(statistics.projected_balance ?? 0) < 0">
+          ${{ (statistics.projected_balance ?? 0).toFixed(2) }}
         </p>
         <p class="text-xs text-gray-500 mt-2">
           Ganancia actual + Por cobrar - Por pagar
@@ -92,7 +92,7 @@
             </div>
             <span class="font-semibold">{{ method.name }}</span>
           </div>
-          <span class="text-xl font-bold text-primary-600">${{ method.amount.toFixed(2) }}</span>
+          <span class="text-xl font-bold text-primary-600">${{ (method.amount ?? 0).toFixed(2) }}</span>
         </div>
       </div>
     </div>
@@ -104,7 +104,7 @@
           <span class="text-2xl">📥</span>
           Por Cobrar Pendiente
         </h3>
-        <p class="text-3xl font-bold text-orange-600">${{ statistics.total_pending_income.toFixed(2) }}</p>
+        <p class="text-3xl font-bold text-orange-600">${{ (statistics.total_pending_income ?? 0).toFixed(2) }}</p>
         <p class="text-sm text-gray-600 mt-2">Dinero que te deben los clientes</p>
       </div>
       
@@ -113,7 +113,7 @@
           <span class="text-2xl">📤</span>
           Por Pagar Pendiente
         </h3>
-        <p class="text-3xl font-bold text-red-600">${{ statistics.total_pending_expenses.toFixed(2) }}</p>
+        <p class="text-3xl font-bold text-red-600">${{ (statistics.total_pending_expenses ?? 0).toFixed(2) }}</p>
         <p class="text-sm text-gray-600 mt-2">Dinero que debes a proveedores</p>
       </div>
     </div>

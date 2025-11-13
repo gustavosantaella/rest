@@ -67,11 +67,12 @@ export class StatisticsGeneralComponent implements OnInit {
       this.cancellationRate = 0;
     }
     
-    // Preparar datos del gráfico
-    const sortedDates = Object.keys(this.statistics.revenue_by_day).sort();
+    // Preparar datos del gráfico con validación defensiva
+    const revenueByDay = this.statistics.revenue_by_day || {};
+    const sortedDates = Object.keys(revenueByDay).sort();
     this.chartData = {
       labels: sortedDates.map(d => new Date(d).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })),
-      values: sortedDates.map(d => this.statistics!.revenue_by_day[d])
+      values: sortedDates.map(d => revenueByDay[d] || 0)
     };
   }
 }

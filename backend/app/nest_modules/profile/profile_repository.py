@@ -26,16 +26,24 @@ class ProfileRepository:
             User.id != exclude_user_id
         ).first()
     
-    def update_user(self, user: User, update_data: dict) -> User:
+    def update_user(self, user_id: int, update_data: dict) -> User:
         """Actualizar datos del usuario"""
+        # Obtener el usuario de la sesión actual
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return None
+        
         for field, value in update_data.items():
             setattr(user, field, value)
         self.db.commit()
         self.db.refresh(user)
         return user
     
-    def update_password(self, user: User, hashed_password: str):
+    def update_password(self, user_id: int, hashed_password: str):
         """Actualizar contraseña del usuario"""
-        user.hashed_password = hashed_password
-        self.db.commit()
+        # Obtener el usuario de la sesión actual
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if user:
+            user.hashed_password = hashed_password
+            self.db.commit()
 
