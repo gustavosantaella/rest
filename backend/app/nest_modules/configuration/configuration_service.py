@@ -7,6 +7,8 @@ from fastapi import HTTPException, status
 from .configuration_repository import ConfigurationRepository, PartnerRepository
 from ...models.configuration import BusinessConfiguration, Partner
 from ...schemas.configuration import BusinessConfigurationUpdate, PartnerCreate, PartnerUpdate
+import qrcode
+from io import BytesIO
 
 
 @Injectable
@@ -95,4 +97,47 @@ class ConfigurationService:
             )
         
         partner_repo.delete(partner)
+    
+    def generate_qr_code(self, business_id: int, db: Session) -> BytesIO:
+        """Generar imagen QR del catálogo del negocio"""
+        config_repo = ConfigurationRepository(db)
+        
+        # Obtener información del negocio
+        config = config_repo.find_by_business_id(business_id)
+        
+        if not config:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Configuración del negocio no encontrada"
+            )
+        
+        if not config.slug:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="El negocio no tiene un slug configurado"
+            )
+        
+        # Generar URL del catálogo
+        catalog_url = f"http://localhost:4200/catalog/{config.slug}"
+        
+        # Crear código QR con buena calidad
+        qr = qrcode.QRCode(
+            version=1,  # Tamaño del QR (1-40, 1 es el más pequeño)
+            error_correction=qrcode.constants.ERROR_CORRECT_H,  # Alta corrección de errores
+            box_size=10,  # Tamaño de cada cuadrito (píxeles)
+            border=4,  # Tamaño del borde (cuadritos)
+        )
+        
+        qr.add_data(catalog_url)
+        qr.make(fit=True)
+        
+        # Crear imagen
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Guardar en buffer
+        buffer = BytesIO()
+        img.save(buffer, format='PNG')
+        buffer.seek(0)
+        
+        return buffer
 

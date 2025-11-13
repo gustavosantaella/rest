@@ -3,6 +3,7 @@ Controlador de configuración usando PyNest
 """
 from nest.core import Controller, Get, Post, Put, Delete, Depends
 from fastapi import status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List
 from .configuration_service import ConfigurationService
@@ -91,4 +92,14 @@ class ConfigurationController:
         """Eliminar socio"""
         self.service.delete_partner(partner_id, current_user.business_id, db)
         return None
+    
+    @Get("/qr-code")
+    def get_qr_code(
+        self,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+    ):
+        """Generar y descargar código QR del catálogo"""
+        qr_image = self.service.generate_qr_code(current_user.business_id, db)
+        return StreamingResponse(qr_image, media_type="image/png")
 

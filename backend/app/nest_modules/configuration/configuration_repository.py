@@ -37,6 +37,41 @@ class ConfigurationRepository:
         self.db.commit()
         self.db.refresh(config)
         return config
+    
+    def get_active_payment_methods(self, business_id: int) -> List[dict]:
+        """Obtener métodos de pago activos para generar QR"""
+        from ...models.payment_method import PaymentMethod
+        
+        payment_methods = self.db.query(PaymentMethod).filter(
+            PaymentMethod.business_id == business_id,
+            PaymentMethod.is_active == True,
+            PaymentMethod.deleted_at.is_(None)
+        ).all()
+        
+        result = []
+        for pm in payment_methods:
+            method_data = {
+                "id": pm.id,
+                "name": pm.name,
+                "type": pm.type,
+            }
+            
+            # Agregar campos específicos según el tipo
+            if pm.type in ["pago_movil", "transferencia"]:
+                if pm.phone:
+                    method_data["phone"] = pm.phone
+                if pm.dni:
+                    method_data["dni"] = pm.dni
+                if pm.bank:
+                    method_data["bank"] = pm.bank
+                if pm.account_holder:
+                    method_data["account_holder"] = pm.account_holder
+                if pm.account_number:
+                    method_data["account_number"] = pm.account_number
+            
+            result.append(method_data)
+        
+        return result
 
 
 class PartnerRepository:
