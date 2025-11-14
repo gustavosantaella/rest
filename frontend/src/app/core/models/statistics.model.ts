@@ -46,8 +46,8 @@ export interface FinancialStatistics {
   total_expenses: number;
   net_profit: number;
   income_by_method: { [method: string]: number };
-  total_pending_income: number;
-  total_pending_expenses: number;
+  total_pending_income?: number;
+  total_pending_expenses?: number;
   projected_balance: number;
   profit_margin: number;
 }

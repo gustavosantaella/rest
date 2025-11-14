@@ -299,15 +299,21 @@
                     </option>
                   </select>
                   
-                  <input
-                    type="number"
-                    formControlName="quantity"
-                    step="0.01"
-                    placeholder="Cantidad"
-                    class="input-field text-sm"
-                    appTooltip="Cantidad del ingrediente necesaria para preparar una porción de este platillo."
-                    tooltipPosition="top"
-                  />
+                  <div class="flex flex-col">
+                    <input
+                      type="number"
+                      formControlName="quantity"
+                      step="0.01"
+                      placeholder="Cantidad"
+                      class="input-field text-sm"
+                      appTooltip="Cantidad del ingrediente necesaria para preparar una porción de este platillo."
+                      tooltipPosition="top"
+                    />
+                    <span *ngIf="ingredient.get('product_id')?.value && ingredient.get('quantity')?.value > 0" 
+                          class="text-xs text-gray-500 mt-1">
+                      Costo: ${{ (getProductPurchasePrice(ingredient.get('product_id')?.value) * (ingredient.get('quantity')?.value || 0)).toFixed(2) }}
+                    </span>
+                  </div>
                 </div>
                 
                 <button
@@ -324,6 +330,44 @@
               
               <div *ngIf="ingredientsArray.length === 0" class="text-center py-4 text-gray-500 text-sm">
                 No hay ingredientes agregados. Click en "+ Agregar Ingrediente" para agregar.
+              </div>
+            </div>
+            
+            <!-- Costo de Producción -->
+            <div *ngIf="ingredientsArray.length > 0" class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-gray-700">💰 Costo de Producción:</span>
+                <span class="text-lg font-bold text-blue-700">${{ productionCost.toFixed(2) }}</span>
+              </div>
+              
+              <div *ngIf="itemForm.get('price')?.value > 0" class="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-blue-200">
+                <div>
+                  <span class="text-xs text-gray-600">Precio de Venta:</span>
+                  <p class="text-sm font-semibold text-gray-900">${{ itemForm.get('price')?.value | number:'1.2-2' }}</p>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-600">Ganancia Neta:</span>
+                  <p class="text-sm font-semibold" [ngClass]="profitAmount >= 0 ? 'text-green-600' : 'text-red-600'">
+                    ${{ profitAmount.toFixed(2) }}
+                  </p>
+                </div>
+                <div class="col-span-2">
+                  <span class="text-xs text-gray-600">Margen de Ganancia:</span>
+                  <p class="text-sm font-semibold" [ngClass]="profitMargin >= 0 ? 'text-green-600' : 'text-red-600'">
+                    {{ profitMargin.toFixed(1) }}%
+                  </p>
+                  <div class="mt-1 w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      class="h-2 rounded-full transition-all duration-300" 
+                      [ngClass]="profitMargin >= 0 ? 'bg-green-500' : 'bg-red-500'"
+                      [style.width.%]="Math.min(Math.abs(profitMargin), 100)"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div *ngIf="itemForm.get('price')?.value === 0 || !itemForm.get('price')?.value" class="mt-2 text-xs text-amber-600">
+                ⚠️ Ingresa el precio de venta para ver el margen de ganancia
               </div>
             </div>
           </div>

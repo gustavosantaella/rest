@@ -28,6 +28,7 @@ from app.nest_modules.permissions.permissions_module import PermissionsModule
 from app.nest_modules.roles.roles_module import RolesModule
 from app.nest_modules.statistics.statistics_module import StatisticsModule
 from app.nest_modules.public.public_module import PublicModule
+from app.nest_modules.upload.upload_module import UploadModule
 
 
 @Module(
@@ -48,6 +49,7 @@ from app.nest_modules.public.public_module import PublicModule
         RolesModule,
         StatisticsModule,
         PublicModule,
+        UploadModule,
     ]
 )
 class AppModule:
