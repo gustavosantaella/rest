@@ -70,6 +70,41 @@ export const routes: Routes = [
         loadComponent: () => import('./features/accounts-payable/accounts-payable.component').then(m => m.AccountsPayableComponent)
       },
       {
+        path: 'accounting',
+        loadComponent: () => import('./features/accounting/accounting.component').then(m => m.AccountingComponent),
+        children: [
+          {
+            path: '',
+            redirectTo: 'chart-of-accounts',
+            pathMatch: 'full'
+          },
+          {
+            path: 'chart-of-accounts',
+            loadComponent: () => import('./features/accounting/chart-of-accounts/chart-of-accounts.component').then(m => m.ChartOfAccountsComponent)
+          },
+          {
+            path: 'journal-entries',
+            loadComponent: () => import('./features/accounting/journal-entries/journal-entries.component').then(m => m.JournalEntriesComponent)
+          },
+          {
+            path: 'general-ledger',
+            loadComponent: () => import('./features/accounting/general-ledger/general-ledger.component').then(m => m.GeneralLedgerComponent)
+          },
+          {
+            path: 'trial-balance',
+            loadComponent: () => import('./features/accounting/trial-balance/trial-balance.component').then(m => m.TrialBalanceComponent)
+          },
+          {
+            path: 'financial-statements',
+            loadComponent: () => import('./features/accounting/financial-statements/financial-statements.component').then(m => m.FinancialStatementsComponent)
+          },
+          {
+            path: 'periods',
+            loadComponent: () => import('./features/accounting/periods/periods.component').then(m => m.PeriodsComponent)
+          }
+        ]
+      },
+      {
         path: 'statistics/general',
         loadComponent: () => import('./features/statistics/general/statistics-general.component').then(m => m.StatisticsGeneralComponent)
       },
