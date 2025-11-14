@@ -4,9 +4,16 @@ Servicio de cuentas por cobrar usando PyNest - Lógica de negocio
 from nest.core import Injectable
 from sqlalchemy.orm import Session
 from typing import List
+from datetime import datetime
 from fastapi import HTTPException, status
 from .accounts_receivable_repository import AccountsReceivableRepository
-from ...schemas.account_receivable import AccountReceivableCreate, AccountReceivableUpdate
+from ...schemas.account_receivable import (
+    AccountReceivableCreate, AccountReceivableUpdate,
+    AccountReceivablePaymentCreate, AccountReceivablePaymentResponse,
+    AccountReceivableResponse
+)
+from ...models.account_receivable import AccountStatus
+from ...models.order import OrderStatus
 
 
 @Injectable
@@ -19,7 +26,9 @@ class AccountsReceivableService:
     def get_accounts(self, business_id: int, skip: int, limit: int, db: Session):
         """Obtener lista de cuentas por cobrar"""
         repo = AccountsReceivableRepository(db)
-        return repo.find_all(business_id, skip, limit)
+        accounts = repo.find_all(business_id, skip, limit)
+        # Serializar con Pydantic para asegurar validación correcta
+        return [AccountReceivableResponse.model_validate(acc, from_attributes=True) for acc in accounts]
     
     def get_summary(self, business_id: int, db: Session):
         """Obtener resumen de cuentas por cobrar"""
@@ -111,4 +120,77 @@ class AccountsReceivableService:
             )
         
         repo.soft_delete(account)
+    
+    def add_payment(
+        self,
+        account_id: int,
+        payment_data: AccountReceivablePaymentCreate,
+        business_id: int,
+        db: Session
+    ) -> AccountReceivablePaymentResponse:
+        """Agregar pago a una cuenta por cobrar"""
+        repo = AccountsReceivableRepository(db)
+        
+        # Buscar la cuenta
+        account = repo.find_by_id(account_id, business_id)
+        if not account:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Cuenta por cobrar no encontrada"
+            )
+        
+        # Validar que el pago no exceda el monto pendiente
+        if payment_data.amount > account.amount_pending:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"El pago (${payment_data.amount:.2f}) excede el monto pendiente (${account.amount_pending:.2f})"
+            )
+        
+        # Crear el pago
+        payment_dict = payment_data.model_dump()
+        payment_dict['account_id'] = account.id
+        payment = repo.create_payment(payment_dict)
+        
+        # Actualizar estado de la cuenta
+        repo.update_account_status(account)
+        
+        # Refrescar la cuenta para obtener el estado actualizado
+        db.refresh(account)
+        
+        # Verificar si la cuenta está pagada (comparar tanto enum como string)
+        is_paid = (
+            account.status == AccountStatus.PAID or 
+            str(account.status) == AccountStatus.PAID.value or
+            account.status == AccountStatus.PAID.value
+        )
+        
+        # Si la cuenta está pagada y tiene una orden relacionada, actualizar la orden
+        if is_paid and account.order_id:
+            self._update_related_order(account.order_id, business_id, db)
+        
+        # Asegurar que payment_date tenga un valor antes de serializar
+        if payment.payment_date is None:
+            payment.payment_date = payment.created_at if payment.created_at else datetime.now()
+            db.commit()
+            db.refresh(payment)
+        
+        return AccountReceivablePaymentResponse.model_validate(payment, from_attributes=True)
+    
+    def _update_related_order(self, order_id: int, business_id: int, db: Session):
+        """Actualizar orden relacionada cuando la cuenta por cobrar se marca como pagada"""
+        from ...nest_modules.orders.orders_repository import OrderRepository
+        from ...models.order import OrderStatus
+        
+        order_repo = OrderRepository(db)
+        order = order_repo.find_by_id(order_id, business_id)
+        
+        if order:
+            # Marcar orden como pagada y completada
+            update_data = {
+                'payment_status': 'paid',
+                'status': OrderStatus.COMPLETED.value,
+                'paid_at': datetime.now()
+            }
+            order_repo.update(order, update_data)
+            db.refresh(order)
 

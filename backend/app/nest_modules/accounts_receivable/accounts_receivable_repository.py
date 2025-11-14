@@ -4,7 +4,7 @@ Repositorio de cuentas por cobrar - Operaciones de base de datos
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
-from ...models.account_receivable import AccountReceivable
+from ...models.account_receivable import AccountReceivable, AccountReceivablePayment, AccountStatus
 
 
 class AccountsReceivableRepository:
@@ -48,4 +48,38 @@ class AccountsReceivableRepository:
         """Eliminar cuenta por cobrar (soft delete)"""
         account.deleted_at = datetime.now()
         self.db.commit()
+    
+    def create_payment(self, payment_data: dict) -> AccountReceivablePayment:
+        """Crear pago de cuenta por cobrar"""
+        # Asegurar que payment_date tenga un valor por defecto
+        if 'payment_date' not in payment_data or payment_data['payment_date'] is None:
+            payment_data['payment_date'] = datetime.now()
+        
+        payment = AccountReceivablePayment(**payment_data)
+        self.db.add(payment)
+        self.db.flush()
+        return payment
+    
+    def update_account_status(self, account: AccountReceivable):
+        """Actualizar estado de la cuenta basado en pagos"""
+        # Recargar los pagos para asegurar que tenemos los datos actualizados
+        self.db.refresh(account)
+        
+        # Calcular total pagado
+        total_paid = sum(p.amount for p in account.payments)
+        account.amount_paid = total_paid
+        account.amount_pending = account.amount - total_paid
+        
+        # Actualizar estado
+        if account.amount_pending <= 0.01:  # Usar tolerancia para comparaciones de float
+            account.status = AccountStatus.PAID
+            if not account.paid_date:
+                account.paid_date = datetime.now()
+        elif total_paid > 0:
+            account.status = AccountStatus.PARTIAL
+        else:
+            account.status = AccountStatus.PENDING
+        
+        self.db.commit()
+        self.db.refresh(account)
 

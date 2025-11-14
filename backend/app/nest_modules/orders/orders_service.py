@@ -8,10 +8,11 @@ from datetime import datetime
 from fastapi import HTTPException, status
 from .orders_repository import (
     OrderRepository, OrderItemRepository, PaymentRepository,
-    TableRepository, ProductRepository, MenuItemRepository
+    TableRepository, ProductRepository, MenuItemRepository, CustomerRepository
 )
 from ...models.order import OrderStatus
 from ...models.table import TableStatus
+from ...models.customer import Customer
 from ...schemas.order import OrderCreate, OrderUpdate, AddPaymentsToOrder, UpdateOrderItems
 
 
@@ -27,6 +28,7 @@ class OrdersService:
         order_repo = OrderRepository(db)
         item_repo = OrderItemRepository(db)
         table_repo = TableRepository(db)
+        customer_repo = CustomerRepository(db)
         
         # Verificar y actualizar mesa si se especifica
         if order_data.table_id:
@@ -37,6 +39,17 @@ class OrdersService:
                     detail="Mesa no encontrada"
                 )
             table_repo.update_status(table, TableStatus.OCCUPIED)
+        
+        # Verificar cliente si se especifica
+        customer_id = None
+        if order_data.customer_id:
+            customer = customer_repo.find_by_id(order_data.customer_id, business_id)
+            if not customer:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Cliente no encontrado"
+                )
+            customer_id = customer.id
         
         # Procesar items y calcular subtotal
         subtotal = 0
@@ -56,6 +69,7 @@ class OrdersService:
             'business_id': business_id,
             'table_id': order_data.table_id,
             'user_id': user_id,
+            'customer_id': customer_id,
             'notes': order_data.notes,
             'status': OrderStatus.PENDING.value,
             'subtotal': subtotal,
@@ -83,6 +97,9 @@ class OrdersService:
         
         # Agregar nombres de métodos de pago
         self._enrich_with_payment_names(order, db)
+        
+        # Agregar información del cliente
+        self._enrich_with_customer_info(order)
         
         return order
     
@@ -225,6 +242,15 @@ class OrdersService:
                 payment.payment_method_id
             )
     
+    def _enrich_with_customer_info(self, order):
+        """Agregar información del cliente a la orden"""
+        if order.customer:
+            # Si hay customer_id, usar información del cliente
+            order.customer_name = f"{order.customer.nombre} {order.customer.apellido or ''}".strip()
+            order.customer_email = order.customer.correo
+            order.customer_phone = order.customer.telefono
+        # Si no hay customer pero hay campos legacy, mantenerlos
+    
     def get_orders(self, business_id: int, skip: int, limit: int, db: Session):
         """Obtener lista de órdenes"""
         order_repo = OrderRepository(db)
@@ -232,6 +258,7 @@ class OrdersService:
         
         for order in orders:
             self._enrich_with_payment_names(order, db)
+            self._enrich_with_customer_info(order)
         
         return orders
     
@@ -247,6 +274,7 @@ class OrdersService:
             )
         
         self._enrich_with_payment_names(order, db)
+        self._enrich_with_customer_info(order)
         return order
     
     def get_order_by_table(self, table_id: int, business_id: int, db: Session):
@@ -261,6 +289,7 @@ class OrdersService:
             )
         
         self._enrich_with_payment_names(order, db)
+        self._enrich_with_customer_info(order)
         return order
     
     def update_order(self, order_id: int, order_update: OrderUpdate, business_id: int, db: Session):

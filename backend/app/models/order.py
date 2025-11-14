@@ -43,9 +43,13 @@ class Order(Base):
     total = Column(Float, default=0)
     
     # Información del cliente (opcional)
-    customer_name = Column(String, nullable=True)
-    customer_email = Column(String, nullable=True)
-    customer_phone = Column(String, nullable=True)
+    customer_id = Column(Integer, ForeignKey("customers.id"), nullable=True, index=True)
+    customer_name = Column(String, nullable=True)  # Deprecated - usar customer_id
+    customer_email = Column(String, nullable=True)  # Deprecated - usar customer_id
+    customer_phone = Column(String, nullable=True)  # Deprecated - usar customer_id
+    
+    # Relación con cliente
+    customer = relationship("Customer", back_populates="orders")
     
     notes = Column(Text)  # Notas especiales del pedido
     

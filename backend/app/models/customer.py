@@ -24,4 +24,5 @@ class Customer(Base):
     
     # Relaciones
     business = relationship("BusinessConfiguration", back_populates="customers")
+    orders = relationship("Order", back_populates="customer")
 

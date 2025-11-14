@@ -18,7 +18,8 @@ export interface AccountPayment {
 
 export interface AccountPaymentCreate {
   amount: number;
-  payment_method?: string;
+  payment_method_id?: number; // ID del método de pago del módulo
+  payment_method?: string; // Deprecated - usar payment_method_id
   reference?: string;
   notes?: string;
 }
@@ -46,6 +47,7 @@ export interface AccountReceivable {
 
 export interface AccountReceivableCreate {
   customer_id?: number;
+  order_id?: number; // ID de la orden relacionada
   invoice_number?: string;
   description: string;
   amount: number;

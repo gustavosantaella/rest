@@ -3,10 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AccountsReceivableService } from '../../core/services/accounts-receivable.service';
 import { CustomerService } from '../../core/services/customer.service';
+import { PaymentMethodService } from '../../core/services/payment-method.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { AccountReceivable, AccountReceivableCreate, AccountStatus, AccountPaymentCreate, AccountsSummary } from '../../core/models/accounts.model';
 import { Customer } from '../../core/models/customer.model';
+import { PaymentMethod } from '../../core/models/payment-method.model';
 
 @Component({
   selector: 'app-accounts-receivable',
@@ -18,12 +20,14 @@ import { Customer } from '../../core/models/customer.model';
 export class AccountsReceivableComponent implements OnInit {
   private accountsService = inject(AccountsReceivableService);
   private customerService = inject(CustomerService);
+  private paymentMethodService = inject(PaymentMethodService);
   private fb = inject(FormBuilder);
   private notificationService = inject(NotificationService);
   private confirmService = inject(ConfirmService);
   
   accounts: AccountReceivable[] = [];
   customers: Customer[] = [];
+  activePaymentMethods: PaymentMethod[] = [];
   summary: AccountsSummary | null = null;
   showModal = false;
   showPaymentModal = false;
@@ -42,8 +46,18 @@ export class AccountsReceivableComponent implements OnInit {
   
   ngOnInit(): void {
     this.loadCustomers();
+    this.loadPaymentMethods();
     this.loadAccounts();
     this.loadSummary();
+  }
+  
+  loadPaymentMethods(): void {
+    this.paymentMethodService.getActivePaymentMethods().subscribe({
+      next: (methods) => {
+        this.activePaymentMethods = methods;
+      },
+      error: (err) => console.error('Error cargando métodos de pago:', err)
+    });
   }
   
   initForms(): void {
@@ -58,7 +72,7 @@ export class AccountsReceivableComponent implements OnInit {
     
     this.paymentForm = this.fb.group({
       amount: ['', [Validators.required, Validators.min(0.01)]],
-      payment_method: [''],
+      payment_method_id: [null], // Usar ID del método de pago
       reference: [''],
       notes: ['']
     });

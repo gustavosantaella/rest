@@ -421,12 +421,11 @@
             <label class="block text-sm font-medium text-gray-700 mb-2"
               >Método de Pago</label
             >
-            <select formControlName="payment_method" class="input-field">
-              <option value="">Seleccionar</option>
-              <option value="Efectivo">Efectivo</option>
-              <option value="Transferencia">Transferencia</option>
-              <option value="Cheque">Cheque</option>
-              <option value="Tarjeta">Tarjeta</option>
+            <select formControlName="payment_method_id" class="input-field">
+              <option [value]="null">Seleccionar método de pago</option>
+              <option *ngFor="let method of activePaymentMethods" [value]="method.id">
+                {{ method.name }} ({{ method.type }})
+              </option>
             </select>
           </div>
 

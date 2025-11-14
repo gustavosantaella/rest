@@ -41,6 +41,8 @@ class OrderItemResponse(BaseModel):
 class OrderBase(BaseModel):
     table_id: Optional[int] = None
     notes: Optional[str] = None
+    customer_id: Optional[int] = None
+    # Campos deprecated - mantener por compatibilidad
     customer_name: Optional[str] = None
     customer_email: Optional[str] = None
     customer_phone: Optional[str] = None

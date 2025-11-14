@@ -77,9 +77,7 @@ export interface OrderItemCreate {
 export interface OrderCreate {
   table_id?: number;
   notes?: string;
-  customer_name?: string;
-  customer_email?: string;
-  customer_phone?: string;
+  customer_id?: number;
   items: OrderItemCreate[];
   payments: OrderPaymentCreate[];
 }

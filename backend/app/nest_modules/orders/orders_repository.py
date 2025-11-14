@@ -11,6 +11,7 @@ from ...models.payment_method import PaymentMethod
 from ...models.product import Product
 from ...models.menu import MenuItem, menu_item_ingredients
 from ...models.table import Table, TableStatus
+from ...models.customer import Customer
 
 
 class OrderRepository:
@@ -21,14 +22,20 @@ class OrderRepository:
     
     def find_by_id(self, order_id: int, business_id: int) -> Optional[Order]:
         """Buscar orden por ID en un negocio"""
-        return self.db.query(Order).filter(
+        from sqlalchemy.orm import joinedload
+        return self.db.query(Order).options(
+            joinedload(Order.customer)
+        ).filter(
             Order.id == order_id,
             Order.business_id == business_id
         ).first()
     
     def find_by_table_id(self, table_id: int, business_id: int) -> Optional[Order]:
         """Buscar orden activa por ID de mesa"""
-        return self.db.query(Order).filter(
+        from sqlalchemy.orm import joinedload
+        return self.db.query(Order).options(
+            joinedload(Order.customer)
+        ).filter(
             Order.table_id == table_id,
             Order.business_id == business_id,
             Order.status.in_([OrderStatus.PENDING.value, OrderStatus.PREPARING.value])
@@ -36,7 +43,10 @@ class OrderRepository:
     
     def find_all(self, business_id: int, skip: int = 0, limit: int = 100) -> List[Order]:
         """Obtener todas las órdenes de un negocio"""
-        return self.db.query(Order).filter(
+        from sqlalchemy.orm import joinedload
+        return self.db.query(Order).options(
+            joinedload(Order.customer)
+        ).filter(
             Order.business_id == business_id
         ).order_by(Order.created_at.desc()).offset(skip).limit(limit).all()
     
@@ -153,6 +163,21 @@ class ProductRepository:
     def update_stock(self, product: Product, quantity_change: int):
         """Actualizar stock de producto"""
         product.stock += quantity_change
+
+
+class CustomerRepository:
+    """Repositorio para clientes"""
+    
+    def __init__(self, db: Session):
+        self.db = db
+    
+    def find_by_id(self, customer_id: int, business_id: int) -> Optional[Customer]:
+        """Buscar cliente por ID"""
+        return self.db.query(Customer).filter(
+            Customer.id == customer_id,
+            Customer.business_id == business_id,
+            Customer.deleted_at.is_(None)
+        ).first()
 
 
 class MenuItemRepository:

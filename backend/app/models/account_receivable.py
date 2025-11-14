@@ -19,6 +19,7 @@ class AccountReceivable(Base):
     id = Column(Integer, primary_key=True, index=True)
     business_id = Column(Integer, ForeignKey("business_configuration.id", ondelete='CASCADE'), nullable=False, index=True)
     customer_id = Column(Integer, ForeignKey("customers.id", ondelete='SET NULL'), nullable=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id", ondelete='SET NULL'), nullable=True, index=True)  # Orden relacionada
     
     # Información de la cuenta
     invoice_number = Column(String, index=True)  # Número de factura
@@ -46,6 +47,7 @@ class AccountReceivable(Base):
     # Relaciones
     business = relationship("BusinessConfiguration")
     customer = relationship("Customer")
+    order = relationship("Order", backref="account_receivable")
     payments = relationship("AccountReceivablePayment", back_populates="account", cascade="all, delete-orphan")
 
 

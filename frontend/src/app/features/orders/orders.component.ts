@@ -8,6 +8,8 @@ import { TableService } from '../../core/services/table.service';
 import { MenuService } from '../../core/services/menu.service';
 import { PaymentMethodService } from '../../core/services/payment-method.service';
 import { ConfigurationService } from '../../core/services/configuration.service';
+import { CustomerService } from '../../core/services/customer.service';
+import { AccountsReceivableService } from '../../core/services/accounts-receivable.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { AuthPermissionsService } from '../../core/services/auth-permissions.service';
@@ -16,6 +18,8 @@ import { PaymentMethod as PaymentMethodModel, PAYMENT_METHOD_LABELS } from '../.
 import { Product } from '../../core/models/product.model';
 import { Table, TableStatus } from '../../core/models/table.model';
 import { MenuItem } from '../../core/models/menu.model';
+import { Customer } from '../../core/models/customer.model';
+import { AccountReceivableCreate } from '../../core/models/accounts.model';
 import { TooltipDirective } from '../../shared/directives/tooltip.directive';
 
 @Component({
@@ -32,6 +36,8 @@ export class OrdersComponent implements OnInit {
   private menuService = inject(MenuService);
   private paymentMethodService = inject(PaymentMethodService);
   private configService = inject(ConfigurationService);
+  private customerService = inject(CustomerService);
+  private accountsReceivableService = inject(AccountsReceivableService);
   private fb = inject(FormBuilder);
   private notificationService = inject(NotificationService);
   private confirmService = inject(ConfirmService);
@@ -42,6 +48,7 @@ export class OrdersComponent implements OnInit {
   products: Product[] = [];
   menuItems: MenuItem[] = [];
   tables: Table[] = [];
+  customers: Customer[] = [];
   activePaymentMethods: PaymentMethodModel[] = [];
   
   // Pagos de la orden actual
@@ -49,6 +56,9 @@ export class OrdersComponent implements OnInit {
   
   hasMenuFeature = true; // Por defecto true, se actualizará desde la configuración
   showMenuItems = true; // Toggle para mostrar menú o inventario
+  
+  // Para el input de fecha
+  today = new Date().toISOString().split('T')[0];
   
   showModal = false;
   showDetailModal = false;
@@ -118,10 +128,21 @@ export class OrdersComponent implements OnInit {
     this.orderForm = this.fb.group({
       table_id: [''],
       notes: [''],
-      customer_name: [''],
-      customer_email: [''],
-      customer_phone: [''],
+      customer_id: [null],
+      create_as_account_receivable: [false],
+      account_due_date: [''],
+      account_notes: [''],
       items: this.fb.array([])
+    });
+    
+    // Validación condicional para cuenta por cobrar
+    this.orderForm.get('create_as_account_receivable')?.valueChanges.subscribe(value => {
+      if (value) {
+        this.orderForm.get('account_due_date')?.setValidators([Validators.required]);
+      } else {
+        this.orderForm.get('account_due_date')?.clearValidators();
+      }
+      this.orderForm.get('account_due_date')?.updateValueAndValidity();
     });
     
     this.paymentForm = this.fb.group({
@@ -189,6 +210,13 @@ export class OrdersComponent implements OnInit {
       }
     });
     
+    // Cargar clientes
+    this.customerService.getCustomers().subscribe({
+      next: (customers) => {
+        this.customers = customers;
+      }
+    });
+    
     this.tableService.getTables().subscribe({
       next: (tables) => {
         this.tables = tables.filter(t => t.status === TableStatus.AVAILABLE || t.status === TableStatus.OCCUPIED);
@@ -210,10 +238,32 @@ export class OrdersComponent implements OnInit {
   
   closeModal(): void {
     this.showModal = false;
+    this.orderForm.reset({
+      table_id: '',
+      notes: '',
+      customer_id: null,
+      create_as_account_receivable: false,
+      account_due_date: '',
+      account_notes: ''
+    });
+    this.itemsArray.clear();
+    this.orderPayments = [];
   }
   
   saveOrder(): void {
     if (this.orderForm.invalid || this.itemsArray.length === 0) return;
+    
+    // Validar cuenta por cobrar
+    if (this.orderForm.value.create_as_account_receivable) {
+      if (!this.orderForm.value.customer_id) {
+        this.notificationService.warning('Debes seleccionar un cliente para crear una cuenta por cobrar');
+        return;
+      }
+      if (!this.orderForm.value.account_due_date) {
+        this.notificationService.warning('Debes ingresar una fecha de vencimiento para la cuenta por cobrar');
+        return;
+      }
+    }
     
     // Filtrar pagos válidos (que tengan método seleccionado y monto > 0)
     const validPayments = this.orderPayments.filter(p => p.payment_method_id > 0 && p.amount > 0);
@@ -273,9 +323,7 @@ export class OrdersComponent implements OnInit {
     const orderData: OrderCreate = {
       table_id: this.orderForm.value.table_id || undefined,
       notes: this.orderForm.value.notes,
-      customer_name: this.orderForm.value.customer_name || undefined,
-      customer_email: this.orderForm.value.customer_email || undefined,
-      customer_phone: this.orderForm.value.customer_phone || undefined,
+      customer_id: this.orderForm.value.customer_id || undefined,
       items: transformedItems,
       payments: validPayments.map(p => ({
         payment_method_id: p.payment_method_id,
@@ -285,10 +333,36 @@ export class OrdersComponent implements OnInit {
     };
     
     this.orderService.createOrder(orderData).subscribe({
-      next: () => {
-        this.loadData();
-        this.closeModal();
-        this.notificationService.success('Orden creada exitosamente');
+      next: (createdOrder) => {
+        // Si se debe crear como cuenta por cobrar
+        if (this.orderForm.value.create_as_account_receivable && this.orderForm.value.customer_id) {
+          const total = this.calculateEstimatedTotal();
+          const accountData: AccountReceivableCreate = {
+            customer_id: this.orderForm.value.customer_id,
+            order_id: createdOrder.id, // Agregar order_id
+            description: `Orden #${createdOrder.id} - ${this.orderForm.value.notes || 'Sin notas'}`,
+            amount: total,
+            due_date: this.orderForm.value.account_due_date,
+            notes: this.orderForm.value.account_notes || undefined
+          };
+          
+          this.accountsReceivableService.createAccountReceivable(accountData).subscribe({
+            next: () => {
+              this.loadData();
+              this.closeModal();
+              this.notificationService.success('Orden y cuenta por cobrar creadas exitosamente');
+            },
+            error: (err) => {
+              this.loadData();
+              this.closeModal();
+              this.notificationService.warning('Orden creada pero hubo un error al crear la cuenta por cobrar: ' + (err.error?.detail || 'Error desconocido'));
+            }
+          });
+        } else {
+          this.loadData();
+          this.closeModal();
+          this.notificationService.success('Orden creada exitosamente');
+        }
       },
       error: (err) => {
         this.notificationService.error('Error al crear la orden: ' + (err.error?.detail || 'Error desconocido'));

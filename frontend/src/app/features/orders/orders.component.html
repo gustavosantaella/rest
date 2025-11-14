@@ -540,39 +540,62 @@
             ></textarea>
           </div>
           
-          <!-- Datos del Cliente (Opcional) -->
+          <!-- Cliente (Opcional) -->
           <div class="p-4 bg-gray-50 rounded-lg border">
-            <h4 class="font-medium text-gray-700 mb-3">Datos del Cliente (Opcional)</h4>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <h4 class="font-medium text-gray-700 mb-3">Cliente (Opcional)</h4>
+            <div class="mb-3">
+              <select 
+                formControlName="customer_id" 
+                class="input-field"
+                appTooltip="Selecciona un cliente del módulo de clientes (opcional)."
+                tooltipPosition="top"
+              >
+                <option [value]="null">Selecciona un cliente (opcional)</option>
+                <option *ngFor="let customer of customers" [value]="customer.id">
+                  {{ customer.nombre }} {{ customer.apellido || '' }} 
+                  <span *ngIf="customer.telefono">- {{ customer.telefono }}</span>
+                </option>
+              </select>
+            </div>
+            
+            <!-- Opción de crear como cuenta por cobrar -->
+            <div class="mb-3">
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  formControlName="create_as_account_receivable"
+                  class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span class="text-sm font-medium text-gray-700">Crear como cuenta por cobrar</span>
+              </label>
+              <p class="text-xs text-gray-500 mt-1 ml-6">
+                La orden se registrará como una cuenta por cobrar en el módulo correspondiente.
+              </p>
+            </div>
+            
+            <!-- Campos adicionales para cuenta por cobrar -->
+            <div *ngIf="orderForm.get('create_as_account_receivable')?.value" class="space-y-3 mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Vencimiento *</label>
                 <input 
-                  type="text" 
-                  formControlName="customer_name" 
+                  type="date" 
+                  formControlName="account_due_date" 
                   class="input-field"
-                  placeholder="Nombre"
-                  appTooltip="Nombre del cliente (opcional). Útil para delivery o reservas."
+                  [min]="today"
+                  appTooltip="Fecha hasta la cual es válida esta cuenta por cobrar."
                   tooltipPosition="top"
                 />
               </div>
               <div>
-                <input 
-                  type="email" 
-                  formControlName="customer_email" 
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nota</label>
+                <textarea 
+                  formControlName="account_notes" 
+                  rows="2" 
                   class="input-field"
-                  placeholder="Email"
-                  appTooltip="Email del cliente (opcional). Útil para enviar comprobantes."
+                  placeholder="Notas adicionales para la cuenta por cobrar..."
+                  appTooltip="Información adicional sobre esta cuenta por cobrar."
                   tooltipPosition="top"
-                />
-              </div>
-              <div>
-                <input 
-                  type="tel" 
-                  formControlName="customer_phone" 
-                  class="input-field"
-                  placeholder="Teléfono"
-                  appTooltip="Teléfono del cliente (opcional). Útil para delivery o contacto."
-                  tooltipPosition="top"
-                />
+                ></textarea>
               </div>
             </div>
           </div>
