@@ -144,7 +144,7 @@ class JournalEntryRepository:
     
     def post_entry(self, entry: JournalEntry, user_id: int) -> None:
         """Contabilizar un asiento"""
-        entry.status = JournalEntryStatus.POSTED
+        entry.status = "posted"
         entry.posted_at = datetime.now()
         entry.posted_by = user_id
         self.db.commit()
@@ -176,7 +176,8 @@ class AccountingPeriodRepository:
         ).first()
     
     def find_current(self, business_id: int) -> Optional[AccountingPeriod]:
-        """Buscar período actual"""
+        """Buscar período contable actual (abierto)"""
+        from datetime import datetime
         now = datetime.now()
         return self.db.query(AccountingPeriod).filter(
             AccountingPeriod.business_id == business_id,
@@ -306,7 +307,7 @@ class GeneralLedgerRepository:
         # Obtener asientos contabilizados
         entries_query = self.db.query(JournalEntry).filter(
             JournalEntry.business_id == business_id,
-            JournalEntry.status == JournalEntryStatus.POSTED,
+            JournalEntry.status == "posted",
             JournalEntry.deleted_at.is_(None)
         )
         if period_id:

@@ -48,4 +48,40 @@ class AccountsPayableRepository:
         """Eliminar cuenta por pagar (soft delete)"""
         account.deleted_at = datetime.now()
         self.db.commit()
+    
+    def create_payment(self, payment_data: dict):
+        """Crear pago de cuenta por pagar"""
+        from ...models.account_payable import AccountPayablePayment
+        
+        if 'payment_date' not in payment_data or payment_data['payment_date'] is None:
+            payment_data['payment_date'] = datetime.now()
+        
+        payment = AccountPayablePayment(**payment_data)
+        self.db.add(payment)
+        self.db.flush()
+        return payment
+    
+    def update_account_status(self, account: AccountPayable):
+        """Actualizar estado de la cuenta basado en pagos"""
+        from ...models.account_payable import AccountStatus
+        
+        self.db.refresh(account)
+        
+        # Calcular total pagado
+        total_paid = sum(p.amount for p in account.payments)
+        account.amount_paid = total_paid
+        account.amount_pending = account.amount - total_paid
+        
+        # Actualizar estado
+        if account.amount_pending <= 0.01:
+            account.status = AccountStatus.PAID
+            if not account.paid_date:
+                account.paid_date = datetime.now()
+        elif total_paid > 0:
+            account.status = AccountStatus.PARTIAL
+        else:
+            account.status = AccountStatus.PENDING
+        
+        self.db.commit()
+        self.db.refresh(account)
 

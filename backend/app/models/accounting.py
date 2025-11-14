@@ -44,8 +44,9 @@ class ChartOfAccounts(Base):
     description = Column(Text)
     
     # Clasificación contable
-    account_type = Column(Enum(AccountType), nullable=False)
-    nature = Column(Enum(AccountNature), nullable=False)  # Deudora o Acreedora
+    # Usar String en lugar de Enum porque la tabla usa VARCHAR
+    account_type = Column(String, nullable=False)  # Valores: "asset", "liability", "equity", "revenue", "expense", "cost_of_sales"
+    nature = Column(String, nullable=False)  # Valores: "debit", "credit"
     
     # Estructura jerárquica
     parent_id = Column(Integer, ForeignKey("chart_of_accounts.id"), nullable=True, index=True)
@@ -85,7 +86,8 @@ class JournalEntry(Base):
     description = Column(Text, nullable=False)
     
     # Estado
-    status = Column(Enum(JournalEntryStatus), default=JournalEntryStatus.DRAFT, nullable=False)
+    # Usar String en lugar de Enum porque la tabla usa VARCHAR
+    status = Column(String, default="draft", nullable=False)  # Valores: "draft", "posted", "reversed"
     posted_at = Column(DateTime(timezone=True), nullable=True)
     posted_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     

@@ -479,7 +479,7 @@ export class JournalEntriesComponent implements OnInit {
   }
 
   getLineControl(index: number, field: string) {
-    return this.linesArray.at(index).get(field)!;
+    return this.linesArray.at(index).get(field) as any;
   }
 
   addLine(): void {

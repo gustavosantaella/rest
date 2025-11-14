@@ -163,7 +163,11 @@ class AccountingService:
 
         # Filtrar por estado si se especifica
         if status:
-            entries = [e for e in entries if e.status.value == status]
+            entries = [
+                e
+                for e in entries
+                if (e.status if isinstance(e.status, str) else e.status.value) == status
+            ]
 
         result = []
         for entry in entries:
@@ -251,7 +255,7 @@ class AccountingService:
             "reference": entry_data.reference,
             "description": entry_data.description,
             "period_id": entry_data.period_id,
-            "status": JournalEntryStatus.DRAFT,
+            "status": "draft",
             "created_by": user_id,
         }
 
@@ -288,7 +292,10 @@ class AccountingService:
                 status_code=status.HTTP_404_NOT_FOUND, detail="Asiento no encontrado"
             )
 
-        if entry.status == JournalEntryStatus.POSTED:
+        entry_status = (
+            entry.status if isinstance(entry.status, str) else entry.status.value
+        )
+        if entry_status == "posted":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No se puede modificar un asiento contabilizado",
@@ -344,7 +351,10 @@ class AccountingService:
                 status_code=status.HTTP_404_NOT_FOUND, detail="Asiento no encontrado"
             )
 
-        if entry.status == JournalEntryStatus.POSTED:
+        entry_status = (
+            entry.status if isinstance(entry.status, str) else entry.status.value
+        )
+        if entry_status == "posted":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="El asiento ya está contabilizado",
@@ -376,7 +386,10 @@ class AccountingService:
                 status_code=status.HTTP_404_NOT_FOUND, detail="Asiento no encontrado"
             )
 
-        if entry.status == JournalEntryStatus.POSTED:
+        entry_status = (
+            entry.status if isinstance(entry.status, str) else entry.status.value
+        )
+        if entry_status == "posted":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No se puede eliminar un asiento contabilizado",
@@ -563,7 +576,14 @@ class AccountingService:
             # Calcular saldo final según naturaleza
             initial = account.initial_balance or Decimal("0")
 
-            if account.nature.value == "debit":
+            # account.nature es ahora un string, no un Enum
+            nature_value = (
+                account.nature
+                if isinstance(account.nature, str)
+                else account.nature.value
+            )
+
+            if nature_value == "debit":
                 final_balance = initial + total_debit - total_credit
                 final_debit = final_balance if final_balance > 0 else Decimal("0")
                 final_credit = -final_balance if final_balance < 0 else Decimal("0")
@@ -577,7 +597,11 @@ class AccountingService:
                     account_id=account.id,
                     account_code=account.code,
                     account_name=account.name,
-                    account_type=account.account_type.value,
+                    account_type=(
+                        account.account_type
+                        if isinstance(account.account_type, str)
+                        else account.account_type.value
+                    ),
                     initial_balance=initial,
                     debit=total_debit,
                     credit=total_credit,

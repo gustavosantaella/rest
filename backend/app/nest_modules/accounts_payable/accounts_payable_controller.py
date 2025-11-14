@@ -11,7 +11,9 @@ from ...models.user import User
 from ...schemas.account_payable import (
     AccountPayableCreate,
     AccountPayableUpdate,
-    AccountPayableResponse
+    AccountPayableResponse,
+    AccountPayablePaymentCreate,
+    AccountPayablePaymentResponse
 )
 from ...utils.dependencies import get_current_user, get_current_active_admin
 
@@ -101,4 +103,17 @@ class AccountsPayableController:
             db
         )
         return None
+    
+    @Post("/{account_id}/payments", status_code=status.HTTP_201_CREATED)
+    def add_payment(
+        self,
+        account_id: int,
+        payment: AccountPayablePaymentCreate,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+    ) -> AccountPayablePaymentResponse:
+        """Agregar pago a una cuenta por pagar"""
+        return self.service.add_payment(
+            account_id, payment, current_user.business_id, db
+        )
 

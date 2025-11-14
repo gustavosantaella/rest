@@ -20,8 +20,8 @@ from ...models.order import OrderStatus
 class AccountsReceivableService:
     """Servicio para lógica de negocio de cuentas por cobrar"""
     
-    def __init__(self):
-        pass
+    def __init__(self, accounting_integration=None):
+        self.accounting_integration = accounting_integration
     
     def get_accounts(self, business_id: int, skip: int, limit: int, db: Session):
         """Obtener lista de cuentas por cobrar"""
@@ -167,6 +167,18 @@ class AccountsReceivableService:
         # Si la cuenta está pagada y tiene una orden relacionada, actualizar la orden
         if is_paid and account.order_id:
             self._update_related_order(account.order_id, business_id, db)
+        
+        # Generar asiento contable automático para el pago
+        if self.accounting_integration:
+            try:
+                # Obtener user_id del contexto (por ahora usar 1 como fallback)
+                user_id = 1  # TODO: Obtener del contexto de autenticación
+                self.accounting_integration.create_receivable_payment_entry(
+                    account, payment, business_id, user_id, db
+                )
+            except Exception as e:
+                # No fallar el pago si falla el asiento contable
+                print(f"Error al crear asiento contable automático: {str(e)}")
         
         # Asegurar que payment_date tenga un valor antes de serializar
         if payment.payment_date is None:
