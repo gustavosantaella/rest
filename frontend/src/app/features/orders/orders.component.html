@@ -582,7 +582,7 @@
               <label class="block text-sm font-medium text-gray-700">Items *</label>
               <div class="flex items-center space-x-3">
                 <!-- Toggle Menú/Inventario -->
-                <div class="flex items-center bg-gray-100 rounded-lg p-1">
+                <div *ngIf="hasMenuFeature" class="flex items-center bg-gray-100 rounded-lg p-1">
                   <button 
                     type="button"
                     (click)="showMenuItems = true"
@@ -1240,7 +1240,7 @@
           <div class="flex items-center justify-between mb-4">
             <label class="block text-sm font-medium text-gray-700">Items de la Orden *</label>
             <div class="flex items-center space-x-3">
-              <div class="flex items-center bg-gray-100 rounded-lg p-1">
+              <div *ngIf="hasMenuFeature" class="flex items-center bg-gray-100 rounded-lg p-1">
                 <button 
                   type="button"
                   (click)="showMenuItems = true"

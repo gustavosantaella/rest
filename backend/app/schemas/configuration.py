@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
+from .business_type import BusinessTypeResponse
 
 
 class PartnerBase(BaseModel):
@@ -48,6 +49,7 @@ class BusinessConfigurationBase(BaseModel):
     tax_rate: float = 0.16
     currency: str = "USD"
     logo_url: Optional[str] = None
+    business_type_id: Optional[int] = None
 
 
 class BusinessConfigurationCreate(BusinessConfigurationBase):
@@ -65,6 +67,7 @@ class BusinessConfigurationUpdate(BaseModel):
     tax_rate: Optional[float] = None
     currency: Optional[str] = None
     logo_url: Optional[str] = None
+    business_type_id: Optional[int] = None
 
 
 class BusinessConfigurationResponse(BusinessConfigurationBase):
@@ -72,6 +75,7 @@ class BusinessConfigurationResponse(BusinessConfigurationBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     partners: List[PartnerResponse] = []
+    business_type: Optional[BusinessTypeResponse] = None  # Información del tipo de negocio
     
     class Config:
         from_attributes = True

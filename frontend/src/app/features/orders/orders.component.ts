@@ -7,6 +7,7 @@ import { ProductService } from '../../core/services/product.service';
 import { TableService } from '../../core/services/table.service';
 import { MenuService } from '../../core/services/menu.service';
 import { PaymentMethodService } from '../../core/services/payment-method.service';
+import { ConfigurationService } from '../../core/services/configuration.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { AuthPermissionsService } from '../../core/services/auth-permissions.service';
@@ -30,6 +31,7 @@ export class OrdersComponent implements OnInit {
   private tableService = inject(TableService);
   private menuService = inject(MenuService);
   private paymentMethodService = inject(PaymentMethodService);
+  private configService = inject(ConfigurationService);
   private fb = inject(FormBuilder);
   private notificationService = inject(NotificationService);
   private confirmService = inject(ConfirmService);
@@ -45,6 +47,7 @@ export class OrdersComponent implements OnInit {
   // Pagos de la orden actual
   orderPayments: OrderPayment[] = [];
   
+  hasMenuFeature = true; // Por defecto true, se actualizará desde la configuración
   showMenuItems = true; // Toggle para mostrar menú o inventario
   
   showModal = false;
@@ -93,7 +96,22 @@ export class OrdersComponent implements OnInit {
   }
   
   ngOnInit(): void {
+    this.loadBusinessType();
     this.loadData();
+  }
+  
+  loadBusinessType(): void {
+    this.configService.getConfiguration().subscribe({
+      next: (config) => {
+        if (config.business_type) {
+          this.hasMenuFeature = config.business_type.has_menu;
+          // Si no hay menú, forzar mostrar inventario
+          if (!this.hasMenuFeature) {
+            this.showMenuItems = false;
+          }
+        }
+      }
+    });
   }
   
   initForm(): void {
@@ -127,11 +145,13 @@ export class OrdersComponent implements OnInit {
   }
   
   addItem(): void {
+    // Si no hay menú, forzar inventario
+    const sourceType = (this.hasMenuFeature && this.showMenuItems) ? 'menu' : 'inventory';
     const item = this.fb.group({
       product_id: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(0.01)]],
       notes: [''],
-      source_type: [this.showMenuItems ? 'menu' : 'inventory'] // Recordar el tipo
+      source_type: [sourceType] // Recordar el tipo
     });
     this.itemsArray.push(item);
   }
@@ -606,11 +626,13 @@ export class OrdersComponent implements OnInit {
   }
   
   addEditItem(): void {
+    // Si no hay menú, forzar inventario
+    const sourceType = (this.hasMenuFeature && this.showMenuItems) ? 'menu' : 'inventory';
     const item = this.fb.group({
       product_id: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(0.01)]],
       notes: [''],
-      source_type: [this.showMenuItems ? 'menu' : 'inventory'] // Recordar el tipo
+      source_type: [sourceType]
     });
     this.editItemsArray.push(item);
   }

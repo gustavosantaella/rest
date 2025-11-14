@@ -6,7 +6,12 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from .configuration_repository import ConfigurationRepository, PartnerRepository
 from ...models.configuration import BusinessConfiguration, Partner
-from ...schemas.configuration import BusinessConfigurationUpdate, PartnerCreate, PartnerUpdate
+from ...schemas.configuration import (
+    BusinessConfigurationUpdate, 
+    PartnerCreate, 
+    PartnerUpdate,
+    BusinessConfigurationResponse
+)
 import qrcode
 from io import BytesIO
 
@@ -18,8 +23,8 @@ class ConfigurationService:
     def __init__(self):
         pass
     
-    def get_configuration(self, business_id: int, db: Session) -> BusinessConfiguration:
-        """Obtener configuración del negocio"""
+    def get_configuration(self, business_id: int, db: Session) -> BusinessConfigurationResponse:
+        """Obtener configuración del negocio con información del tipo"""
         repo = ConfigurationRepository(db)
         config = repo.find_by_business_id(business_id)
         
@@ -29,7 +34,36 @@ class ConfigurationService:
                 detail="No se ha configurado el negocio aún"
             )
         
-        return config
+        # Preparar datos para la respuesta
+        config_data = {
+            "id": config.id,
+            "business_name": config.business_name,
+            "slug": config.slug,
+            "legal_name": config.legal_name,
+            "rif": config.rif,
+            "phone": config.phone,
+            "email": config.email,
+            "address": config.address,
+            "tax_rate": config.tax_rate,
+            "currency": config.currency,
+            "logo_url": config.logo_url,
+            "business_type_id": config.business_type_id,
+            "created_at": config.created_at,
+            "updated_at": config.updated_at,
+            "partners": []
+        }
+        
+        # Agregar información del business_type si existe
+        if config.business_type:
+            from ...schemas.business_type import BusinessTypeResponse
+            config_data["business_type"] = BusinessTypeResponse.model_validate(
+                config.business_type, 
+                from_attributes=True
+            )
+        else:
+            config_data["business_type"] = None
+        
+        return BusinessConfigurationResponse(**config_data)
     
     def update_configuration(
         self,

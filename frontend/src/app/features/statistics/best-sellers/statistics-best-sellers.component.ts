@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StatisticsService } from '../../../core/services/statistics.service';
+import { ConfigurationService } from '../../../core/services/configuration.service';
 import { BestSellersStatistics } from '../../../core/models/statistics.model';
 import { BarChartComponent } from '../../../shared/components/charts/bar-chart.component';
 
@@ -14,10 +15,13 @@ import { BarChartComponent } from '../../../shared/components/charts/bar-chart.c
 })
 export class StatisticsBestSellersComponent implements OnInit {
   private statisticsService = inject(StatisticsService);
+  private configService = inject(ConfigurationService);
   
   statistics: BestSellersStatistics | null = null;
   loading = true;
   selectedPeriod = 30;
+  hasMenuStatistics = true;
+  hasProductStatistics = true;
   
   // Datos pre-calculados
   bestProductsChartData: { labels: string[], data: number[] } = { labels: [], data: [] };
@@ -31,7 +35,19 @@ export class StatisticsBestSellersComponent implements OnInit {
   ];
   
   ngOnInit(): void {
+    this.loadBusinessType();
     this.loadStatistics();
+  }
+  
+  loadBusinessType(): void {
+    this.configService.getConfiguration().subscribe({
+      next: (config) => {
+        if (config.business_type) {
+          this.hasMenuStatistics = config.business_type.has_menu_statistics;
+          this.hasProductStatistics = config.business_type.has_product_statistics;
+        }
+      }
+    });
   }
   
   loadStatistics(): void {

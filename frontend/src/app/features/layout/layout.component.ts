@@ -29,6 +29,7 @@ export class LayoutComponent implements OnInit {
   currentUser: User | null = null;
   businessName: string = 'Sistema de Gestión';
   businessInitials: string = 'SG';
+  businessType: BusinessConfiguration['business_type'] = undefined;
   sidebarOpen = true;
   configDropdownOpen = false;
   accountsDropdownOpen = false;
@@ -83,6 +84,7 @@ export class LayoutComponent implements OnInit {
         if (config && config.business_name) {
           this.businessName = config.business_name;
           this.businessInitials = this.getInitials(config.business_name);
+          this.businessType = config.business_type;
           // Actualizar título de la pestaña del navegador
           this.titleService.setTitle(`${config.business_name} - Sistema de Gestión`);
         }
@@ -91,6 +93,7 @@ export class LayoutComponent implements OnInit {
         // Si no hay configuración, mantener el nombre por defecto
         this.businessName = 'Sistema de Gestión';
         this.businessInitials = 'SG';
+        this.businessType = undefined;
         this.titleService.setTitle('Sistema de Gestión - Restaurante');
       }
     });
@@ -154,19 +157,25 @@ export class LayoutComponent implements OnInit {
   }
   
   canAccessMenu(): boolean {
-    return this.authPermissionsService.hasAnyPermission([
+    // Verificar permisos Y que el tipo de negocio permita menú
+    const hasPermission = this.authPermissionsService.hasAnyPermission([
       'menu.view', 
       'menu.create', 
       'menu.edit',
       'menu.delete'
     ]);
+    const hasMenuFeature = this.businessType?.has_menu !== false; // true por defecto si no hay tipo
+    return hasPermission && hasMenuFeature;
   }
   
   canAccessTables(): boolean {
-    return this.authPermissionsService.hasAnyPermission([
+    // Verificar permisos Y que el tipo de negocio permita mesas
+    const hasPermission = this.authPermissionsService.hasAnyPermission([
       'tables.view', 
       'tables.manage'
     ]);
+    const hasTablesFeature = this.businessType?.has_tables !== false; // true por defecto si no hay tipo
+    return hasPermission && hasTablesFeature;
   }
   
   canAccessOrders(): boolean {
@@ -197,6 +206,23 @@ export class LayoutComponent implements OnInit {
       'config.manage_roles',
       'config.manage_payment_methods'
     ]);
+  }
+  
+  // Métodos para verificar características del tipo de negocio
+  hasMenuFeature(): boolean {
+    return this.businessType?.has_menu !== false;
+  }
+  
+  hasTablesFeature(): boolean {
+    return this.businessType?.has_tables !== false;
+  }
+  
+  hasMenuStatistics(): boolean {
+    return this.businessType?.has_menu_statistics !== false;
+  }
+  
+  hasProductStatistics(): boolean {
+    return this.businessType?.has_product_statistics !== false;
   }
 }
 

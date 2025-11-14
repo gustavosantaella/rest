@@ -13,8 +13,11 @@ class ConfigurationRepository:
         self.db = db
     
     def find_by_business_id(self, business_id: int) -> Optional[BusinessConfiguration]:
-        """Buscar configuración de un negocio"""
-        return self.db.query(BusinessConfiguration).filter(
+        """Buscar configuración de un negocio con business_type"""
+        from sqlalchemy.orm import joinedload
+        return self.db.query(BusinessConfiguration).options(
+            joinedload(BusinessConfiguration.business_type)
+        ).filter(
             BusinessConfiguration.id == business_id
         ).first()
     

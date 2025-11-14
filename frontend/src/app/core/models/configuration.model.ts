@@ -13,6 +13,18 @@ export interface Partner {
   user_email?: string;
 }
 
+export interface BusinessType {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  has_menu: boolean;
+  has_tables: boolean;
+  has_ingredients: boolean;
+  has_menu_statistics: boolean;
+  has_product_statistics: boolean;
+}
+
 export interface BusinessConfiguration {
   id: number;
   business_name: string;
@@ -25,6 +37,8 @@ export interface BusinessConfiguration {
   tax_rate: number;
   currency: string;
   logo_url?: string;
+  business_type_id?: number;
+  business_type?: BusinessType;
   created_at: string;
   updated_at?: string;
   partners: Partner[];
@@ -41,6 +55,7 @@ export interface BusinessConfigurationCreate {
   tax_rate?: number;
   currency?: string;
   logo_url?: string;
+  business_type_id?: number;
 }
 
 export interface PartnerCreate {

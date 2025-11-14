@@ -9,6 +9,9 @@ class BusinessConfiguration(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     
+    # Tipo de negocio
+    business_type_id = Column(Integer, ForeignKey("business_types.id"), nullable=True, index=True)
+    
     # Información del negocio
     business_name = Column(String, nullable=False)  # Nombre del local
     slug = Column(String, unique=True, index=True)  # Slug único para URL pública
@@ -31,6 +34,7 @@ class BusinessConfiguration(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relaciones
+    business_type = relationship("BusinessType", back_populates="businesses")
     partners = relationship("Partner", back_populates="business", cascade="all, delete-orphan")
     users = relationship("User", back_populates="business")
     customers = relationship("Customer", back_populates="business")

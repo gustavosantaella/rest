@@ -82,6 +82,26 @@
           />
         </div>
         
+        <!-- Tipo de Negocio -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Negocio</label>
+          <select 
+            formControlName="business_type_id" 
+            class="input-field"
+            appTooltip="Selecciona el tipo de negocio para personalizar las opciones disponibles en el sistema."
+            tooltipPosition="top"
+          >
+            <option [ngValue]="null">Selecciona un tipo de negocio</option>
+            <option *ngFor="let type of businessTypes" [ngValue]="type.id">
+              {{ type.name }}
+              <span *ngIf="type.description"> - {{ type.description }}</span>
+            </option>
+          </select>
+          <p class="text-xs text-gray-500 mt-1">
+            El tipo de negocio determina qué opciones estarán disponibles en el menú lateral y las estadísticas.
+          </p>
+        </div>
+        
         <!-- RIF -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">RIF / Identificación Fiscal</label>

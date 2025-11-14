@@ -16,7 +16,7 @@
   <div *ngIf="!loading && statistics" class="space-y-6">
     <!-- Charts -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="card">
+      <div *ngIf="hasProductStatistics" class="card">
         <h2 class="text-xl font-bold mb-4">Productos Más Vendidos (Gráfico)</h2>
         <app-bar-chart 
           [labels]="bestProductsChartData.labels" 
@@ -27,7 +27,7 @@
         </app-bar-chart>
       </div>
       
-      <div class="card">
+      <div *ngIf="hasMenuStatistics" class="card">
         <h2 class="text-xl font-bold mb-4">Menú Más Vendido (Gráfico)</h2>
         <app-bar-chart 
           [labels]="bestMenuChartData.labels" 
@@ -42,7 +42,7 @@
     <!-- Tables -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Productos Más Vendidos -->
-    <div class="card">
+    <div *ngIf="hasProductStatistics" class="card">
       <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
         <span class="text-2xl">🏆</span>
         Productos Más Vendidos
@@ -67,7 +67,7 @@
     </div>
     
     <!-- Ítems de Menú Más Vendidos -->
-    <div class="card">
+    <div *ngIf="hasMenuStatistics" class="card">
       <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
         <span class="text-2xl">🍽️</span>
         Menú Más Vendido
@@ -92,7 +92,7 @@
     </div>
     
     <!-- Productos Menos Vendidos -->
-    <div class="card lg:col-span-2">
+    <div *ngIf="hasProductStatistics" class="card lg:col-span-2">
       <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
         <span class="text-2xl">📉</span>
         Productos Menos Vendidos

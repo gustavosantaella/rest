@@ -4,9 +4,10 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ConfigurationService } from '../../core/services/configuration.service';
 import { UserService } from '../../core/services/user.service';
 import { PaymentMethodService } from '../../core/services/payment-method.service';
+import { BusinessTypeService } from '../../core/services/business-type.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ConfirmService } from '../../core/services/confirm.service';
-import { BusinessConfiguration, Partner, BusinessConfigurationCreate, PartnerCreate } from '../../core/models/configuration.model';
+import { BusinessConfiguration, Partner, BusinessConfigurationCreate, PartnerCreate, BusinessType } from '../../core/models/configuration.model';
 import { User, UserRole } from '../../core/models/user.model';
 import { PaymentMethod, PaymentMethodType, PaymentMethodCreate, PAYMENT_METHOD_LABELS } from '../../core/models/payment-method.model';
 import { TooltipDirective } from '../../shared/directives/tooltip.directive';
@@ -22,6 +23,7 @@ export class ConfigurationComponent implements OnInit {
   public configService = inject(ConfigurationService);
   private userService = inject(UserService);
   private paymentMethodService = inject(PaymentMethodService);
+  private businessTypeService = inject(BusinessTypeService);
   private fb = inject(FormBuilder);
   private notificationService = inject(NotificationService);
   private confirmService = inject(ConfirmService);
@@ -30,6 +32,7 @@ export class ConfigurationComponent implements OnInit {
   adminUsers: User[] = [];
   partners: Partner[] = [];
   paymentMethods: PaymentMethod[] = [];
+  businessTypes: BusinessType[] = [];
   
   showPartnerModal = false;
   editingPartner: Partner | null = null;
@@ -66,7 +69,8 @@ export class ConfigurationComponent implements OnInit {
       address: [''],
       tax_rate: [16, [Validators.required, Validators.min(0), Validators.max(100)]],
       currency: ['USD', Validators.required],
-      logo_url: ['']
+      logo_url: [''],
+      business_type_id: [null]
     });
     
     this.partnerForm = this.fb.group({
@@ -97,7 +101,12 @@ export class ConfigurationComponent implements OnInit {
       next: (config) => {
         this.configuration = config;
         this.partners = config.partners;
-        this.configForm.patchValue(config);
+        // Asegurar que business_type_id se asigne correctamente (puede ser null o undefined)
+        const formValue = {
+          ...config,
+          business_type_id: config.business_type_id || null
+        };
+        this.configForm.patchValue(formValue);
         this.configExists = true;
         this.loading = false;
       },
@@ -123,6 +132,13 @@ export class ConfigurationComponent implements OnInit {
         this.paymentMethods = methods;
       }
     });
+    
+    // Cargar tipos de negocios
+    this.businessTypeService.getBusinessTypes().subscribe({
+      next: (types) => {
+        this.businessTypes = types;
+      }
+    });
   }
   
   saveConfiguration(): void {
@@ -135,7 +151,14 @@ export class ConfigurationComponent implements OnInit {
       this.configService.updateConfiguration(configData).subscribe({
         next: () => {
           this.loadData();
-          this.notificationService.success('Configuración actualizada exitosamente. Recarga la página (F5) para ver el nombre actualizado.');
+          const businessTypeChanged = this.configuration?.business_type_id !== configData.business_type_id;
+          let message = 'Configuración actualizada exitosamente.';
+          if (businessTypeChanged) {
+            message += ' Recarga la página (F5) para ver los cambios en el menú lateral y estadísticas.';
+          } else {
+            message += ' Recarga la página (F5) para ver el nombre actualizado.';
+          }
+          this.notificationService.success(message);
         },
         error: (err) => {
           this.notificationService.error('Error al actualizar: ' + (err.error?.detail || 'Error desconocido'));

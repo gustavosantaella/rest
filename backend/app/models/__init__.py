@@ -4,6 +4,7 @@ from .table import Table
 from .order import Order, OrderItem, OrderStatus, PaymentStatus
 from .menu import MenuItem, MenuCategory
 from .configuration import BusinessConfiguration, Partner
+from .business_type import BusinessType
 from .payment_method import PaymentMethod, PaymentMethodType
 from .order_payment import OrderPayment
 from .permission import UserPermission
@@ -26,6 +27,7 @@ __all__ = [
     "MenuCategory",
     "BusinessConfiguration",
     "Partner",
+    "BusinessType",
     "PaymentMethod",
     "PaymentMethodType",
     "OrderPayment",

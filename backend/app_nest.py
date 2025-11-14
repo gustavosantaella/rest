@@ -29,6 +29,7 @@ from app.nest_modules.roles.roles_module import RolesModule
 from app.nest_modules.statistics.statistics_module import StatisticsModule
 from app.nest_modules.public.public_module import PublicModule
 from app.nest_modules.upload.upload_module import UploadModule
+from app.nest_modules.business_types.business_types_module import BusinessTypesModule
 
 
 @Module(
@@ -50,6 +51,7 @@ from app.nest_modules.upload.upload_module import UploadModule
         StatisticsModule,
         PublicModule,
         UploadModule,
+        BusinessTypesModule,
     ]
 )
 class AppModule:
